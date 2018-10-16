@@ -1,0 +1,12 @@
+.idea/
+.DS_Store
+
+# Bin
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test
+*.test

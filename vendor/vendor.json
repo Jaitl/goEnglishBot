@@ -1,0 +1,97 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "NTMpg2d3Yl053jP8gt+Qk7qq9UU=",
+			"path": "github.com/aws/aws-sdk-go/aws",
+			"revision": "6e42625fcba9345ab67b42b6744284e8f7e3e79d",
+			"revisionTime": "2018-10-15T21:27:28Z"
+		},
+		{
+			"checksumSHA1": "Y9W+4GimK4Fuxq+vyIskVYFRnX4=",
+			"path": "github.com/aws/aws-sdk-go/aws/awserr",
+			"revision": "6e42625fcba9345ab67b42b6744284e8f7e3e79d",
+			"revisionTime": "2018-10-15T21:27:28Z"
+		},
+		{
+			"checksumSHA1": "I87y3G8r14yKZQ5NlkupFUJ5jW0=",
+			"path": "github.com/aws/aws-sdk-go/aws/credentials",
+			"revision": "6e42625fcba9345ab67b42b6744284e8f7e3e79d",
+			"revisionTime": "2018-10-15T21:27:28Z"
+		},
+		{
+			"checksumSHA1": "WGg5z1n2JGCf7YIwtwlhn30svbo=",
+			"path": "github.com/aws/aws-sdk-go/aws/endpoints",
+			"revision": "6e42625fcba9345ab67b42b6744284e8f7e3e79d",
+			"revisionTime": "2018-10-15T21:27:28Z"
+		},
+		{
+			"checksumSHA1": "wjxQlU1PYxrDRFoL1Vek8Wch7jk=",
+			"path": "github.com/aws/aws-sdk-go/internal/sdkio",
+			"revision": "6e42625fcba9345ab67b42b6744284e8f7e3e79d",
+			"revisionTime": "2018-10-15T21:27:28Z"
+		},
+		{
+			"checksumSHA1": "LjfJ5ydXdiSuQixC+HrmSZjW3NU=",
+			"path": "github.com/aws/aws-sdk-go/internal/shareddefaults",
+			"revision": "6e42625fcba9345ab67b42b6744284e8f7e3e79d",
+			"revisionTime": "2018-10-15T21:27:28Z"
+		},
+		{
+			"checksumSHA1": "O1v7ZY6psIKMtE2Ma/hp1myzM2o=",
+			"path": "github.com/globalsign/mgo",
+			"revision": "eeefdecb41b842af6dc652aaea4026e8403e62df",
+			"revisionTime": "2018-10-15T13:59:52Z"
+		},
+		{
+			"checksumSHA1": "zdy6XflmESAiFmyptSqpUMfXSyo=",
+			"path": "github.com/globalsign/mgo/bson",
+			"revision": "eeefdecb41b842af6dc652aaea4026e8403e62df",
+			"revisionTime": "2018-10-15T13:59:52Z"
+		},
+		{
+			"checksumSHA1": "//bXQG4HblBwxHJDIW/PklXAxu0=",
+			"path": "github.com/globalsign/mgo/internal/json",
+			"revision": "eeefdecb41b842af6dc652aaea4026e8403e62df",
+			"revisionTime": "2018-10-15T13:59:52Z"
+		},
+		{
+			"checksumSHA1": "loubUcDO2QAStKIlVd7DqSeoEaw=",
+			"path": "github.com/globalsign/mgo/internal/sasl",
+			"revision": "eeefdecb41b842af6dc652aaea4026e8403e62df",
+			"revisionTime": "2018-10-15T13:59:52Z"
+		},
+		{
+			"checksumSHA1": "xjfEsfN7ho6dDOVeUQJhW4KzD2I=",
+			"path": "github.com/globalsign/mgo/internal/scram",
+			"revision": "eeefdecb41b842af6dc652aaea4026e8403e62df",
+			"revisionTime": "2018-10-15T13:59:52Z"
+		},
+		{
+			"checksumSHA1": "1MD5Dz5eVB6XZ24C3P8nlAD6ui0=",
+			"path": "github.com/go-ini/ini",
+			"revision": "9c8236e659b76e87bf02044d06fde8683008ff3e",
+			"revisionTime": "2018-10-14T23:42:04Z"
+		},
+		{
+			"checksumSHA1": "TQoVLB6O0fejiQX0GDaZXkWpK4w=",
+			"path": "github.com/go-telegram-bot-api/telegram-bot-api",
+			"revision": "9860bdfd3a171ceafb6e1eafa163482a6ef92643",
+			"revisionTime": "2018-10-08T19:45:45Z"
+		},
+		{
+			"checksumSHA1": "pV3393b0sRz5XLfZTlKyUoAjMTM=",
+			"path": "github.com/jessevdk/go-flags",
+			"revision": "9c49a3351d49777ccd40148b5cdf6f2998f51087",
+			"revisionTime": "2018-10-06T08:32:04Z"
+		},
+		{
+			"checksumSHA1": "t8jzPFIv4DNACv+cuZoigNmjPLQ=",
+			"path": "github.com/technoweenie/multipartstreamer",
+			"revision": "a90a01d73ae432e2611d178c18367fbaa13e0154",
+			"revisionTime": "2013-10-20T00:18:33Z"
+		}
+	],
+	"rootPath": "github.com/jaitl/goEnglishBot"
+}
