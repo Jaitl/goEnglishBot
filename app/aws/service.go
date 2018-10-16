@@ -30,8 +30,8 @@ func New(accessKey, secretKey string) (*Session, error) {
 
 func (s *Session) Translate(text string) (string, error) {
 	input := translate.TextInput{
-		SourceLanguageCode: aws.String("ru"),
-		TargetLanguageCode: aws.String("en"),
+		SourceLanguageCode: aws.String("en"),
+		TargetLanguageCode: aws.String("ru"),
 		Text: aws.String(text),
 	}
 

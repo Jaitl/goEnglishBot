@@ -3,7 +3,7 @@ package add
 import (
 	"errors"
 	"fmt"
-	"github.com/jaitl/goEnglishBot/app/actiontion"
+	"github.com/jaitl/goEnglishBot/app/action"
 	"github.com/jaitl/goEnglishBot/app/aws"
 	"github.com/jaitl/goEnglishBot/app/phrase"
 	"github.com/jaitl/goEnglishBot/app/telegram"
