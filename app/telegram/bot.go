@@ -36,17 +36,6 @@ func (t *Telegram) Start(executor *action.Executor) {
 	}
 }
 
-func (t *Telegram) SendWithKeyboard(chatId int, message string, keyboard map[ButtonValue]ButtonName) error {
-	msg := tgbotapi.NewMessage(int64(chatId), message)
-
-	keys := CreateKeyboard(keyboard)
-	msg.ReplyMarkup = keys
-
-	_, err := t.bot.Send(msg)
-
-	return err
-}
-
 func handleMessage(update tgbotapi.Update, executor *action.Executor) {
 	cmd, err := command.Parse(update)
 
@@ -61,4 +50,23 @@ func handleMessage(update tgbotapi.Update, executor *action.Executor) {
 		log.Printf("[ERROR] error during execution cmd: %v", err)
 		return
 	}
+}
+
+func (t *Telegram) SendWithKeyboard(chatId int, message string, keyboard map[ButtonValue]ButtonName) error {
+	msg := tgbotapi.NewMessage(int64(chatId), message)
+
+	keys := CreateKeyboard(keyboard)
+	msg.ReplyMarkup = keys
+
+	_, err := t.bot.Send(msg)
+
+	return err
+}
+
+func (t *Telegram) Send(chatId int, message string) error {
+	msg := tgbotapi.NewMessage(int64(chatId), message)
+
+	_, err := t.bot.Send(msg)
+
+	return err
 }

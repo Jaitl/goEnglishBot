@@ -24,6 +24,8 @@ const (
 
 	userPhrase   action.SessionKey = "userPhrase"
 	awsTranslate action.SessionKey = "awsTranslate"
+
+	addedMsg string = "Добавлена фраза \"%s\" с переводом \"%s\""
 )
 
 func (a *Action) GetType() action.Type {
@@ -117,11 +119,22 @@ func (a *Action) waitConfirmStage(cmd command.Command, session *action.Session) 
 			return err
 		}
 		err = a.PhraseModel.Create(cmd.GetUserId(), session.Data[userPhrase], session.Data[awsTranslate])
+		if err != nil {
+			return err
+		}
+
+		msg := fmt.Sprintf(addedMsg, session.Data[userPhrase], session.Data[awsTranslate])
+		err = a.Bot.Send(cmd.GetUserId(), msg)
+
 		return err
 
 	case "custom":
 		session.Stage = WaitCustomTranslate
 		err := a.ActionSession.UpdateSession(session)
+		if err != nil {
+			return err
+		}
+		err = a.Bot.Send(cmd.GetUserId(), "Отправте свой перевод")
 		return err
 	}
 
@@ -132,7 +145,7 @@ func (a *Action) waitCustomTranslateStage(cmd command.Command, session *action.S
 	translate, ok := cmd.(*command.TextCommand)
 
 	if !ok {
-		return errors.New("command does not belong to ConfirmStage stage in AddAction")
+		return errors.New("command does not belong to WaitCustomTranslate stage in AddAction")
 	}
 
 	err := a.ActionSession.ClearSession(cmd.GetUserId())
@@ -142,5 +155,13 @@ func (a *Action) waitCustomTranslateStage(cmd command.Command, session *action.S
 	}
 
 	err = a.PhraseModel.Create(cmd.GetUserId(), session.Data[userPhrase], translate.Text)
+
+	if err != nil {
+		return err
+	}
+
+	msg := fmt.Sprintf(addedMsg, session.Data[userPhrase], translate.Text)
+	err = a.Bot.Send(cmd.GetUserId(), msg)
+
 	return err
 }
