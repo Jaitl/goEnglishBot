@@ -52,16 +52,19 @@ func (e *Executor) Execute(cmd command.Command) error {
 					return err
 				}
 
-				action = e.commandToAction[cmd.GetType()]
-				err = action.Execute(action.GetStartStage(), cmd, nil)
-
-				return err
+				action, ok = e.commandToAction[cmd.GetType()]
+				if ok {
+					err = action.Execute(action.GetStartStage(), cmd, nil)
+					return err
+				}
 			}
 		}
 	} else {
-		action := e.commandToAction[cmd.GetType()]
-		err = action.Execute(action.GetStartStage(), cmd, nil)
-		return err
+		action, ok := e.commandToAction[cmd.GetType()]
+		if ok {
+			err = action.Execute(action.GetStartStage(), cmd, nil)
+			return err
+		}
 	}
 
 	return nil
