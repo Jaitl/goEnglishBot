@@ -2,12 +2,16 @@ package phrase
 
 import (
 	"github.com/globalsign/mgo"
+	"github.com/globalsign/mgo/bson"
 )
 
 type Phrase struct {
-	UserId    int    `bson:"userId"`
-	Text      string `bson:"text"`
-	Translate string `bson:"translate"`
+	Id          bson.ObjectId `bson:"_id,omitempty"`
+	UserId      int           `bson:"userId"`
+	IncNumber   int           `bson:"incNumber"`
+	EnglishText string        `bson:"englishText"`
+	RussianText string        `bson:"russianText"`
+	IsMemorized bool          `bson:"isMemorized"`
 }
 
 type Model struct {
@@ -15,25 +19,47 @@ type Model struct {
 	collection *mgo.Collection
 }
 
-func New(session *mgo.Session, db string) *Model {
+func NewModel(session *mgo.Session, db string) *Model {
 	c := session.DB(db).C("phrase")
 
 	return &Model{session: session, collection: c}
 }
 
-func (model *Model) Create(userId int, text, translate string) error {
-	err := model.collection.Insert(Phrase{UserId: userId, Text: text, Translate: translate})
+func (model *Model) CreatePhrase(userId, incNumber int, textEnglish, textRussian string) error {
+	err := model.collection.Insert(Phrase{
+		UserId:      userId,
+		IncNumber:   incNumber,
+		EnglishText: textEnglish,
+		RussianText: textRussian,
+		IsMemorized: false,
+	})
 	return err
 }
 
-func (model *Model) AllPhrases() ([]Phrase, error) {
+func (model *Model) AllPhrases(userId int) ([]Phrase, error) {
 	var phrases []Phrase
 
-	err := model.collection.Find(nil).All(&phrases)
+	err := model.collection.Find(bson.M{"isMemorized": false, "userId": userId}).All(&phrases)
 
 	if err != nil {
 		return nil, err
 	}
 
 	return phrases, nil
+}
+
+func (model *Model) NextIncNumber(userId int) (int, error) {
+	var phrase Phrase
+
+	err := model.collection.Find(bson.M{"isMemorized": false, "userId": userId}).Sort("-incNumber").One(&phrase)
+
+	if err == mgo.ErrNotFound {
+		return 1, nil
+	}
+
+	if err != nil {
+		return 0, err
+	}
+
+	return phrase.IncNumber + 1, nil
 }

@@ -70,3 +70,19 @@ func (t *Telegram) Send(chatId int, message string) error {
 
 	return err
 }
+
+func (t *Telegram) SendMarkdown(chatId int, message string) error {
+	msg := tgbotapi.MessageConfig{
+		BaseChat: tgbotapi.BaseChat{
+			ChatID:           int64(chatId),
+			ReplyToMessageID: 0,
+		},
+		Text:                  message,
+		ParseMode:             tgbotapi.ModeMarkdown,
+		DisableWebPagePreview: false,
+	}
+
+	_, err := t.bot.Send(msg)
+
+	return err
+}

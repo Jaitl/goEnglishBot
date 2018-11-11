@@ -4,6 +4,7 @@ import (
 	"github.com/globalsign/mgo"
 	"github.com/jaitl/goEnglishBot/app/action"
 	"github.com/jaitl/goEnglishBot/app/action/add"
+	"github.com/jaitl/goEnglishBot/app/action/list"
 	"github.com/jaitl/goEnglishBot/app/aws"
 	"github.com/jaitl/goEnglishBot/app/phrase"
 	"github.com/jaitl/goEnglishBot/app/telegram"
@@ -30,7 +31,7 @@ func main() {
 		log.Panic(err)
 	}
 
-	phraseModel := phrase.New(mongoSession, "goEnglishBot")
+	phraseModel := phrase.NewModel(mongoSession, "goEnglishBot")
 	actionSession := action.NewSessionMongoModel(mongoSession, "goEnglishBot")
 
 	awsSession, err := aws.New(opts.AWSKey, opts.AWSSecret)
@@ -47,6 +48,7 @@ func main() {
 
 	actions := []action.Action{
 		&add.Action{awsSession, actionSession, telegramBot, phraseModel},
+		&list.Action{telegramBot, phraseModel},
 	}
 
 	actionExecutor := action.NewExecutor(actionSession, actions)

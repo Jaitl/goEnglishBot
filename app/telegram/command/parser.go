@@ -27,6 +27,8 @@ func parseTextCommand(userId int, cmd string) Command {
 		switch cmd {
 		case "/add":
 			return &AddCommand{userId, text}
+		case "/list":
+			return &ListCommand{userId}
 		}
 	}
 

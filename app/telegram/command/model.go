@@ -4,6 +4,7 @@ type Type string
 
 const (
 	Add              Type = "add"
+	List             Type = "list"
 	Text             Type = "text"
 	KeyboardCallback Type = "keyboardCallback"
 )
@@ -16,6 +17,10 @@ type Command interface {
 type AddCommand struct {
 	UserId int
 	Text   string
+}
+
+type ListCommand struct {
+	UserId int
 }
 
 type TextCommand struct {
@@ -34,6 +39,14 @@ func (c *AddCommand) GetUserId() int {
 
 func (c *AddCommand) GetType() Type {
 	return Add
+}
+
+func (c *ListCommand) GetUserId() int {
+	return c.UserId
+}
+
+func (c *ListCommand) GetType() Type {
+	return List
 }
 
 func (c *TextCommand) GetUserId() int {

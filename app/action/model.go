@@ -16,5 +16,6 @@ type Type string
 type Stage string
 
 const (
-	Add Type = "add"
+	Add  Type = "add"
+	List Type = "list"
 )
