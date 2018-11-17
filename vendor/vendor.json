@@ -165,6 +165,12 @@
 			"revisionTime": "2018-10-15T21:27:28Z"
 		},
 		{
+			"checksumSHA1": "S7NJNuKPbT+a9/zk9qC1/zZAHLM=",
+			"path": "github.com/aws/aws-sdk-go/private/protocol/restjson",
+			"revision": "028b1f5c18c5a65839c9bd10f5afdedc4f37cce3",
+			"revisionTime": "2018-11-10T20:17:01Z"
+		},
+		{
 			"checksumSHA1": "soXVJWQ/xvEB72Mo6FresaQIxLg=",
 			"path": "github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil",
 			"revision": "6e42625fcba9345ab67b42b6744284e8f7e3e79d",
@@ -175,6 +181,12 @@
 			"path": "github.com/aws/aws-sdk-go/service",
 			"revision": "6e42625fcba9345ab67b42b6744284e8f7e3e79d",
 			"revisionTime": "2018-10-15T21:27:28Z"
+		},
+		{
+			"checksumSHA1": "Tbc5JxCYeDLRgbzCaYOYkw0GtV8=",
+			"path": "github.com/aws/aws-sdk-go/service/polly",
+			"revision": "028b1f5c18c5a65839c9bd10f5afdedc4f37cce3",
+			"revisionTime": "2018-11-10T20:17:01Z"
 		},
 		{
 			"checksumSHA1": "35a/vm5R/P68l/hQD55GqviO6bg=",

@@ -4,12 +4,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/polly"
 	"github.com/aws/aws-sdk-go/service/translate"
 )
 
 type Session struct {
 	session   *session.Session
 	translate *translate.Translate
+	polly     *polly.Polly
 }
 
 func New(accessKey, secretKey string) (*Session, error) {
@@ -25,7 +27,9 @@ func New(accessKey, secretKey string) (*Session, error) {
 
 	trans := translate.New(sess)
 
-	return &Session{session: sess, translate: trans}, nil
+	polly := polly.New(sess)
+
+	return &Session{session: sess, translate: trans, polly: polly}, nil
 }
 
 func (s *Session) Translate(text string) (string, error) {
@@ -42,4 +46,12 @@ func (s *Session) Translate(text string) (string, error) {
 	if err != nil { return "", err }
 
 	return *resp.TranslatedText, nil
+}
+
+func (s *Session) Speach(text string) (error) {
+	input := &polly.SynthesizeSpeechInput{OutputFormat: aws.String("ogg_vorbis"), Text: aws.String(text), VoiceId: aws.String("Matthew")}
+
+	output, err := s.polly.SynthesizeSpeech(input)
+
+	output.AudioStream
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/globalsign/mgo"
 	"github.com/jaitl/goEnglishBot/app/action"
 	"github.com/jaitl/goEnglishBot/app/action/add"
+	"github.com/jaitl/goEnglishBot/app/action/audio"
 	"github.com/jaitl/goEnglishBot/app/action/list"
 	"github.com/jaitl/goEnglishBot/app/aws"
 	"github.com/jaitl/goEnglishBot/app/phrase"
@@ -49,6 +50,7 @@ func main() {
 	actions := []action.Action{
 		&add.Action{awsSession, actionSession, telegramBot, phraseModel},
 		&list.Action{telegramBot, phraseModel},
+		&audio.Action{telegramBot, phraseModel},
 	}
 
 	actionExecutor := action.NewExecutor(actionSession, actions)
