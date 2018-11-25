@@ -63,3 +63,19 @@ func (model *Model) NextIncNumber(userId int) (int, error) {
 
 	return phrase.IncNumber + 1, nil
 }
+
+func (model *Model) FindPhraseByIncNumber(userId, incNumber int) (*Phrase, error) {
+	var phrase Phrase
+
+	err := model.collection.Find(bson.M{"incNumber": incNumber, "userId": userId}).One(&phrase)
+
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &phrase, nil
+}

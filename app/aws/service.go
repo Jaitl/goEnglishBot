@@ -6,15 +6,21 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/polly"
 	"github.com/aws/aws-sdk-go/service/translate"
+	"github.com/jaitl/goEnglishBot/app/settings"
+	"github.com/satori/go.uuid"
+	"io"
+	"os"
+	"path/filepath"
 )
 
 type Session struct {
-	session   *session.Session
-	translate *translate.Translate
-	polly     *polly.Polly
+	session        *session.Session
+	translate      *translate.Translate
+	polly          *polly.Polly
+	commonSettings *settings.CommonSettings
 }
 
-func New(accessKey, secretKey string) (*Session, error) {
+func New(accessKey, secretKey string, commonSettings *settings.CommonSettings) (*Session, error) {
 	config := aws.Config{
 		Region:      aws.String("us-west-2"),
 		Credentials: credentials.NewStaticCredentials(accessKey, secretKey, ""),
@@ -27,31 +33,57 @@ func New(accessKey, secretKey string) (*Session, error) {
 
 	trans := translate.New(sess)
 
-	polly := polly.New(sess)
+	pollySes := polly.New(sess)
 
-	return &Session{session: sess, translate: trans, polly: polly}, nil
+	return &Session{session: sess, translate: trans, polly: pollySes, commonSettings: commonSettings}, nil
 }
 
 func (s *Session) Translate(text string) (string, error) {
 	input := translate.TextInput{
 		SourceLanguageCode: aws.String("en"),
 		TargetLanguageCode: aws.String("ru"),
-		Text: aws.String(text),
+		Text:               aws.String(text),
 	}
 
 	req, resp := s.translate.TextRequest(&input)
 
 	err := req.Send()
 
-	if err != nil { return "", err }
+	if err != nil {
+		return "", err
+	}
 
 	return *resp.TranslatedText, nil
 }
 
-func (s *Session) Speach(text string) (error) {
-	input := &polly.SynthesizeSpeechInput{OutputFormat: aws.String("ogg_vorbis"), Text: aws.String(text), VoiceId: aws.String("Matthew")}
+func (s *Session) Speech(text string) (string, error) {
+	input := &polly.SynthesizeSpeechInput{OutputFormat: aws.String("mp3"), Text: aws.String(text), VoiceId: aws.String("Matthew")}
 
 	output, err := s.polly.SynthesizeSpeech(input)
 
-	output.AudioStream
+	if err != nil {
+		return "", err
+	}
+
+	defer output.AudioStream.Close()
+
+	fileName := uuid.Must(uuid.NewV4()).String() + ".mp3"
+
+	oggFilePath := filepath.Join(s.commonSettings.TmpFolder, fileName)
+
+	outFile, err := os.Create(oggFilePath)
+
+	if err != nil {
+		return "", err
+	}
+
+	defer outFile.Close()
+
+	_, err = io.Copy(outFile, output.AudioStream)
+
+	if err != nil {
+		return "", err
+	}
+
+	return oggFilePath, nil
 }

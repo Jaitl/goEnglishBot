@@ -3,14 +3,17 @@ package audio
 import (
 	"fmt"
 	"github.com/jaitl/goEnglishBot/app/action"
+	"github.com/jaitl/goEnglishBot/app/aws"
 	"github.com/jaitl/goEnglishBot/app/phrase"
 	"github.com/jaitl/goEnglishBot/app/telegram"
 	"github.com/jaitl/goEnglishBot/app/telegram/command"
+	"os"
 )
 
 type Action struct {
 	Bot         *telegram.Telegram
 	PhraseModel *phrase.Model
+	AwsSession *aws.Session
 }
 
 const (
@@ -48,7 +51,23 @@ func (a *Action) Execute(stage action.Stage, cmd command.Command, session *actio
 }
 
 func (a *Action) startStage(cmd command.Command) error {
-	err := a.Bot.Send(cmd.GetUserId(), "Аудио")
+	audCmd := cmd.(*command.AudioCommand)
+
+	phrs, err := a.PhraseModel.FindPhraseByIncNumber(audCmd.GetUserId(), audCmd.IncNumber)
+
+	if err != nil {
+		return err
+	}
+
+	pathToAudioFile, err := a.AwsSession.Speech(phrs.EnglishText)
+
+	if err != nil {
+		return err
+	}
+
+	defer os.Remove(pathToAudioFile)
+
+	err = a.Bot.SendVoice(audCmd.UserId, pathToAudioFile)
 
 	return err
 }
