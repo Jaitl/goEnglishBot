@@ -19,4 +19,5 @@ const (
 	Add   Type = "add"
 	List  Type = "list"
 	Audio Type = "audio"
+	Voice Type = "voice"
 )

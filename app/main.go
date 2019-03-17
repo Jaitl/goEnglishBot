@@ -6,6 +6,7 @@ import (
 	"github.com/jaitl/goEnglishBot/app/action/add"
 	"github.com/jaitl/goEnglishBot/app/action/audio"
 	"github.com/jaitl/goEnglishBot/app/action/list"
+	"github.com/jaitl/goEnglishBot/app/action/voice"
 	"github.com/jaitl/goEnglishBot/app/aws"
 	"github.com/jaitl/goEnglishBot/app/phrase"
 	"github.com/jaitl/goEnglishBot/app/settings"
@@ -55,6 +56,7 @@ func main() {
 		&add.Action{awsSession, actionSession, telegramBot, phraseModel},
 		&list.Action{telegramBot, phraseModel},
 		&audio.Action{telegramBot, phraseModel, awsSession},
+		&voice.Action{awsSession, actionSession, telegramBot, phraseModel},
 	}
 
 	actionExecutor := action.NewExecutor(actionSession, actions)

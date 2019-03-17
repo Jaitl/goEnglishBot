@@ -7,7 +7,9 @@ const (
 	List             Type = "list"
 	Text             Type = "text"
 	KeyboardCallback Type = "keyboardCallback"
+	ReceivedVoice    Type = "receivedVoice"
 	Audio            Type = "audio"
+	Voice            Type = "voice"
 )
 
 type Command interface {
@@ -34,7 +36,16 @@ type KeyboardCallbackCommand struct {
 	Data   string
 }
 
+type ReceivedVoiceCommand struct {
+	UserId int
+}
+
 type AudioCommand struct {
+	UserId    int
+	IncNumber int
+}
+
+type VoiceCommand struct {
 	UserId    int
 	IncNumber int
 }
@@ -71,10 +82,26 @@ func (c *KeyboardCallbackCommand) GetType() Type {
 	return KeyboardCallback
 }
 
+func (c *ReceivedVoiceCommand) GetUserId() int {
+	return c.UserId
+}
+
+func (c *ReceivedVoiceCommand) GetType() Type {
+	return ReceivedVoice
+}
+
 func (c *AudioCommand) GetUserId() int {
 	return c.UserId
 }
 
 func (c *AudioCommand) GetType() Type {
 	return Audio
+}
+
+func (c *VoiceCommand) GetUserId() int {
+	return c.UserId
+}
+
+func (c *VoiceCommand) GetType() Type {
+	return Voice
 }
