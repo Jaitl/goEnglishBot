@@ -1,6 +1,7 @@
 package aws
 
 import (
+	"github.com/Jaitl/goOggCnv"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -18,6 +19,7 @@ type Session struct {
 	translate      *translate.Translate
 	polly          *polly.Polly
 	commonSettings *settings.CommonSettings
+	oggCnv         *goOggCnv.GoOggCnv
 }
 
 func New(accessKey, secretKey string, commonSettings *settings.CommonSettings) (*Session, error) {
@@ -32,10 +34,10 @@ func New(accessKey, secretKey string, commonSettings *settings.CommonSettings) (
 	}
 
 	trans := translate.New(sess)
-
 	pollySes := polly.New(sess)
+	cnv := goOggCnv.NewD()
 
-	return &Session{session: sess, translate: trans, polly: pollySes, commonSettings: commonSettings}, nil
+	return &Session{session: sess, translate: trans, polly: pollySes, commonSettings: commonSettings, oggCnv: cnv}, nil
 }
 
 func (s *Session) Translate(text string) (string, error) {
@@ -67,23 +69,32 @@ func (s *Session) Speech(text string) (string, error) {
 
 	defer output.AudioStream.Close()
 
-	fileName := uuid.Must(uuid.NewV4()).String() + ".mp3"
+	mp3FileName := uuid.Must(uuid.NewV4()).String() + ".mp3"
+	mp3FilePath := filepath.Join(s.commonSettings.TmpFolder, mp3FileName)
+	oggFileName := uuid.Must(uuid.NewV4()).String() + ".ogg"
+	oggFilePath := filepath.Join(s.commonSettings.TmpFolder, oggFileName)
 
-	oggFilePath := filepath.Join(s.commonSettings.TmpFolder, fileName)
+	mp3OutFile, err := os.Create(mp3FilePath)
 
-	outFile, err := os.Create(oggFilePath)
+	if err != nil {
+		return "", err
+	}
+
+	defer mp3OutFile.Close()
+
+	_, err = io.Copy(mp3OutFile, output.AudioStream)
 
 	if err != nil {
 		return "", err
 	}
 
-	defer outFile.Close()
-
-	_, err = io.Copy(outFile, output.AudioStream)
+	err = s.oggCnv.Mp3ToOgg(mp3FilePath, oggFilePath)
 
 	if err != nil {
 		return "", err
 	}
+
+	defer os.Remove(mp3FilePath)
 
 	return oggFilePath, nil
 }
