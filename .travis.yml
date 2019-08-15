@@ -1,3 +1,12 @@
 language: go
+
+go:
+  - 1.12.x
+
+env:
+  - GOFLAGS='-mod vendor'
+  
+install: true
+
 script:
-  - go test ./...
+  - go test -v ./...
