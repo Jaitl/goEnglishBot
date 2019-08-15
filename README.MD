@@ -1,4 +1,6 @@
 # goEnglishBot
+[![Build Status](https://travis-ci.org/Jaitl/goEnglishBot.svg?branch=master)](https://travis-ci.org/Jaitl/goEnglishBot)
+
 Бот для Telegram для изучения английских фраз.
 
 ## Использование
