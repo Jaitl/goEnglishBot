@@ -87,8 +87,8 @@ func (t *Telegram) SendMarkdown(chatId int, message string) error {
 	return err
 }
 
-func (t *Telegram) SendVoice(chatId int, pathToVoice string) error {
-	msg := tgbotapi.NewVoiceUpload(int64(chatId), pathToVoice)
+func (t *Telegram) SendAudio(chatId int, pathToVoice string) error {
+	msg := tgbotapi.NewAudioUpload(int64(chatId), pathToVoice)
 
 	_, err := t.bot.Send(msg)
 
