@@ -87,8 +87,9 @@ func (model *Model) FindPhraseByIncNumber(userId, incNumber int) (*Phrase, error
 	return &phrase, nil
 }
 
-func (phrase *Phrase) Title() string {
-	reg, _ := regexp.Compile("[^a-zA-Z\\s]+")
+func (phrase *Phrase) Title() (string, error) {
+	reg := regexp.MustCompile(`[^a-zA-Z\s]+`)
+
 	processedString := reg.ReplaceAllString(phrase.EnglishText, "")
 
 	title := "#" + strconv.Itoa(phrase.IncNumber)
@@ -102,5 +103,5 @@ func (phrase *Phrase) Title() string {
 		}
 	}
 
-	return title
+	return title, nil
 }

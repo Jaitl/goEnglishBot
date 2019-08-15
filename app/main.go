@@ -16,9 +16,9 @@ import (
 )
 
 var opts struct {
-	TelegramToken string `long:"token" env:"TOKEN" required:"true"`
-	AWSKey        string `long:"aws-key" env:"AWS_KEY" required:"true"`
-	AWSSecret     string `long:"aws-secret" env:"AWS_SECRET" required:"true"`
+	TelegramToken   string `long:"token" env:"TOKEN" required:"true"`
+	AWSKey          string `long:"aws-key" env:"AWS_KEY" required:"true"`
+	AWSSecret       string `long:"aws-secret" env:"AWS_SECRET" required:"true"`
 	PathToTmpFolder string `long:"tmp-folder" env:"TMP_FOLDER" required:"true"`
 }
 
@@ -53,10 +53,10 @@ func main() {
 	}
 
 	actions := []action.Action{
-		&add.Action{awsSession, actionSession, telegramBot, phraseModel},
-		&list.Action{telegramBot, phraseModel},
-		&audio.Action{telegramBot, phraseModel, awsSession},
-		&voice.Action{awsSession, actionSession, telegramBot, phraseModel},
+		&add.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel},
+		&list.Action{Bot: telegramBot, PhraseModel: phraseModel},
+		&audio.Action{Bot: telegramBot, PhraseModel: phraseModel, AwsSession: awsSession},
+		&voice.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel},
 	}
 
 	actionExecutor := action.NewExecutor(actionSession, actions)

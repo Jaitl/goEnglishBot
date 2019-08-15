@@ -26,6 +26,10 @@ func New(token string) (*Telegram, error) {
 
 	updates, err := bot.GetUpdatesChan(u)
 
+	if err != nil {
+		return nil, err
+	}
+
 	return &Telegram{bot: bot, updateChanel: updates}, nil
 }
 

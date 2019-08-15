@@ -20,7 +20,7 @@ const (
 	Start action.Stage = "start" // Получает id фразы
 	Voice action.Stage = "voice" // Получает произнесенную фразу
 
-	phraseId action.SessionKey = "phraseId"
+	phraseId   action.SessionKey = "phraseId"
 	phraseText action.SessionKey = "phraseText"
 
 	voiceMsg string = "Отправьте голосовое сообщение с произношением фразы \"%v\""

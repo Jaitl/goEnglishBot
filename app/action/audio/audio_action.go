@@ -59,7 +59,13 @@ func (a *Action) startStage(cmd command.Command) error {
 		return err
 	}
 
-	pathToAudioFile, err := a.AwsSession.Speech(phrs.EnglishText, phrs.Title())
+	fileName, err := phrs.Title()
+
+	if err != nil {
+		return err
+	}
+
+	pathToAudioFile, err := a.AwsSession.Speech(phrs.EnglishText, fileName)
 
 	if err != nil {
 		return err
