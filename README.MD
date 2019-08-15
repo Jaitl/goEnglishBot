@@ -48,6 +48,7 @@
 
 # Разработка
 ## Полезные команды
-* `govendor fetch <>` - добавляет зависимость в vendor
+* `govendor fetch <name>` - добавляет зависимость в vendor
+* `govendor remove <name>` - удаляет зависимость из vendor
 * `go test ./...` - запускает все тесты
 * `golangci-lint run` - запускает линтер

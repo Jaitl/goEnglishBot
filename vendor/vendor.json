@@ -3,12 +3,6 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "fl9b4wK0XSuPmVSP5ZjUsPceO24=",
-			"path": "github.com/Jaitl/goOggCnv",
-			"revision": "1d5bc05a3537a73e6609aff99b69054403a03ce8",
-			"revisionTime": "2019-03-12T14:32:07Z"
-		},
-		{
 			"checksumSHA1": "NTMpg2d3Yl053jP8gt+Qk7qq9UU=",
 			"path": "github.com/aws/aws-sdk-go/aws",
 			"revision": "6e42625fcba9345ab67b42b6744284e8f7e3e79d",
