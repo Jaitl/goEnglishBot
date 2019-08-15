@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/polly"
 	"github.com/aws/aws-sdk-go/service/translate"
 	"github.com/jaitl/goEnglishBot/app/settings"
-	"github.com/satori/go.uuid"
 	"io"
 	"os"
 	"path/filepath"
@@ -55,7 +54,7 @@ func (s *Session) Translate(text string) (string, error) {
 	return *resp.TranslatedText, nil
 }
 
-func (s *Session) Speech(text string) (string, error) {
+func (s *Session) Speech(text, name string) (string, error) {
 	input := &polly.SynthesizeSpeechInput{OutputFormat: aws.String("mp3"), Text: aws.String(text), VoiceId: aws.String("Matthew")}
 
 	output, err := s.polly.SynthesizeSpeech(input)
@@ -66,7 +65,7 @@ func (s *Session) Speech(text string) (string, error) {
 
 	defer output.AudioStream.Close()
 
-	mp3FileName := uuid.Must(uuid.NewV4()).String() + ".mp3"
+	mp3FileName := name + ".mp3"
 	mp3FilePath := filepath.Join(s.commonSettings.TmpFolder, mp3FileName)
 
 	mp3OutFile, err := os.Create(mp3FilePath)

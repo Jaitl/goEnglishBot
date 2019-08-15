@@ -3,6 +3,13 @@ package phrase
 import (
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
+	"regexp"
+	"strconv"
+	"strings"
+)
+
+const (
+	phraseTitleSize = 40
 )
 
 type Phrase struct {
@@ -78,4 +85,22 @@ func (model *Model) FindPhraseByIncNumber(userId, incNumber int) (*Phrase, error
 	}
 
 	return &phrase, nil
+}
+
+func (phrase *Phrase) Title() string {
+	reg, _ := regexp.Compile("[^a-zA-Z\\s]+")
+	processedString := reg.ReplaceAllString(phrase.EnglishText, "")
+
+	title := "#" + strconv.Itoa(phrase.IncNumber)
+
+	parts := strings.Split(processedString, " ")
+
+	for _, part := range parts {
+		title = title + "-" + part
+		if len(title) > phraseTitleSize {
+			break
+		}
+	}
+
+	return title
 }

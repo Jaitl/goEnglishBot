@@ -13,7 +13,7 @@ import (
 type Action struct {
 	Bot         *telegram.Telegram
 	PhraseModel *phrase.Model
-	AwsSession *aws.Session
+	AwsSession  *aws.Session
 }
 
 const (
@@ -59,7 +59,7 @@ func (a *Action) startStage(cmd command.Command) error {
 		return err
 	}
 
-	pathToAudioFile, err := a.AwsSession.Speech(phrs.EnglishText)
+	pathToAudioFile, err := a.AwsSession.Speech(phrs.EnglishText, phrs.Title())
 
 	if err != nil {
 		return err
