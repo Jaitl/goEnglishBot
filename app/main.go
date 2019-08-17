@@ -19,6 +19,9 @@ var opts struct {
 	TelegramToken   string `long:"token" env:"TOKEN" required:"true"`
 	AWSKey          string `long:"aws-key" env:"AWS_KEY" required:"true"`
 	AWSSecret       string `long:"aws-secret" env:"AWS_SECRET" required:"true"`
+	AWSRegion       string `long:"aws-region" env:"AWS_REGION" required:"true"`
+	AWSS3BucketName string `long:"aws-s3-bucket-name" env:"AWS_S3_BUCKET_NAME" required:"true"`
+	AWSS3VoicePath  string `long:"aws-s3-voice-path" env:"AWS_S3_VOICE_PATH" required:"true"`
 	PathToTmpFolder string `long:"tmp-folder" env:"TMP_FOLDER" required:"true"`
 }
 
@@ -29,7 +32,12 @@ func main() {
 		log.Panic(err)
 	}
 
-	commonSettings := &settings.CommonSettings{TmpFolder: opts.PathToTmpFolder}
+	commonSettings := &settings.CommonSettings{
+		TmpFolder:    opts.PathToTmpFolder,
+		AwsRegion:    opts.AWSRegion,
+		S3BucketName: opts.AWSS3BucketName,
+		S3VoicePath:  opts.AWSS3VoicePath,
+	}
 
 	mongoSession, err := mgo.Dial("mongodb://localhost:27017")
 
@@ -56,7 +64,7 @@ func main() {
 		&add.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel},
 		&list.Action{Bot: telegramBot, PhraseModel: phraseModel},
 		&audio.Action{Bot: telegramBot, PhraseModel: phraseModel, AwsSession: awsSession},
-		&voice.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel},
+		&voice.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel, CommonSettings: commonSettings},
 	}
 
 	actionExecutor := action.NewExecutor(actionSession, actions)

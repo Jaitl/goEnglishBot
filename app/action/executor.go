@@ -17,7 +17,7 @@ func NewExecutor(session *SessionModel, actions []Action) *Executor {
 	for _, act := range actions {
 		type2acts[act.GetType()] = act
 
-		for _, cmd := range act.GetStartCommands() {
+		for cmd := range act.GetWaitCommands(act.GetStartStage()) {
 			cmd2acts[cmd] = act
 		}
 	}

@@ -1,0 +1,87 @@
+{
+  "jobName": "job",
+  "accountId": "0",
+  "results": {
+    "transcripts": [
+      {
+        "transcript": "What's up, man? What they"
+      }
+    ],
+    "items": [
+      {
+        "start_time": "1.02",
+        "end_time": "1.45",
+        "alternatives": [
+          {
+            "confidence": "0.9973",
+            "content": "What's"
+          }
+        ],
+        "type": "pronunciation"
+      },
+      {
+        "start_time": "1.45",
+        "end_time": "1.69",
+        "alternatives": [
+          {
+            "confidence": "1.0000",
+            "content": "up"
+          }
+        ],
+        "type": "pronunciation"
+      },
+      {
+        "alternatives": [
+          {
+            "confidence": "0.0000",
+            "content": ","
+          }
+        ],
+        "type": "punctuation"
+      },
+      {
+        "start_time": "1.69",
+        "end_time": "2.12",
+        "alternatives": [
+          {
+            "confidence": "1.0000",
+            "content": "man"
+          }
+        ],
+        "type": "pronunciation"
+      },
+      {
+        "alternatives": [
+          {
+            "confidence": "0.0000",
+            "content": "?"
+          }
+        ],
+        "type": "punctuation"
+      },
+      {
+        "start_time": "2.47",
+        "end_time": "2.68",
+        "alternatives": [
+          {
+            "confidence": "1.0000",
+            "content": "What"
+          }
+        ],
+        "type": "pronunciation"
+      },
+      {
+        "start_time": "2.68",
+        "end_time": "2.99",
+        "alternatives": [
+          {
+            "confidence": "0.9996",
+            "content": "they"
+          }
+        ],
+        "type": "pronunciation"
+      }
+    ]
+  },
+  "status": "COMPLETED"
+}

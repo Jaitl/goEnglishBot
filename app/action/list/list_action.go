@@ -25,10 +25,6 @@ func (a *Action) GetStartStage() action.Stage {
 	return Start
 }
 
-func (a *Action) GetStartCommands() []command.Type {
-	return []command.Type{command.List}
-}
-
 func (a *Action) GetWaitCommands(stage action.Stage) map[command.Type]bool {
 	switch stage {
 	case Start:

@@ -60,5 +60,5 @@ func parseTextCommand(userId int, cmd string) (Command, error) {
 }
 
 func parseVoiceCommand(userId int, voice *tgbotapi.Voice) (Command, error) {
-	return &ReceivedVoiceCommand{userId}, nil
+	return &ReceivedVoiceCommand{UserId: userId, FileID: voice.FileID}, nil
 }

@@ -98,3 +98,13 @@ func (t *Telegram) SendAudio(chatId int, pathToVoice string) error {
 
 	return err
 }
+
+func (t *Telegram) GetFilePath(fileID string) (string, error) {
+	file, err := t.bot.GetFileDirectURL(fileID)
+
+	if err != nil {
+		return "", err
+	}
+
+	return file, nil
+}

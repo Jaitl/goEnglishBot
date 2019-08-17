@@ -38,6 +38,7 @@ type KeyboardCallbackCommand struct {
 
 type ReceivedVoiceCommand struct {
 	UserId int
+	FileID string
 }
 
 type AudioCommand struct {
