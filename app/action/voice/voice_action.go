@@ -54,7 +54,12 @@ func (a *Action) GetWaitCommands(stage action.Stage) map[command.Type]bool {
 func (a *Action) Execute(stage action.Stage, cmd command.Command, session *action.Session) error {
 	switch stage {
 	case Start:
-		return a.startStage(cmd)
+		if _, ok := cmd.(*command.VoiceCommand); ok {
+			return a.startStage(cmd)
+		}
+		if _, ok := cmd.(*command.ReceivedVoiceCommand); ok {
+			return a.voiceStage(cmd, session)
+		}
 	case Voice:
 		return a.voiceStage(cmd, session)
 	}
@@ -87,6 +92,12 @@ func (a *Action) startStage(cmd command.Command) error {
 
 func (a *Action) voiceStage(cmd command.Command, session *action.Session) error {
 	voiceCmd := cmd.(*command.ReceivedVoiceCommand)
+
+	err := a.ActionSession.ClearSession(cmd.GetUserId())
+
+	if err != nil {
+		return err
+	}
 
 	fileUrl, err := a.Bot.GetFilePath(voiceCmd.FileID)
 
