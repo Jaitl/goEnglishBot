@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  go-english-bot:
+    image: go-english-bot:latest
+    depends_on:
+      - 'mongodb'
+    environment:
+      - TOKEN=abt
+      - MONGO_DB_URL=mongodb://mongodb:27017
+      - TMP_FOLDER=/tmp_data
+      - AWS_REGION=eu-west-2
+      - AWS_KEY=asd
+      - AWS_SECRET=qwewe
+      - AWS_S3_BUCKET_NAME=test
+      - AWS_S3_VOICE_PATH=voice
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+  mongodb:
+    image: mongo:3.6
+    volumes:
+      - ./data/db:/data/db
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"

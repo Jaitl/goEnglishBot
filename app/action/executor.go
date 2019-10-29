@@ -2,6 +2,7 @@ package action
 
 import (
 	"github.com/jaitl/goEnglishBot/app/telegram/command"
+	"log"
 )
 
 type Executor struct {
@@ -43,6 +44,7 @@ func (e *Executor) Execute(cmd command.Command) error {
 			ok = waitCommands[cmd.GetType()]
 
 			if ok {
+				log.Printf("[INFO] execute action: %s", cmd.GetType())
 				err = action.Execute(ses.Stage, cmd, ses)
 				return err
 			} else {
@@ -54,6 +56,7 @@ func (e *Executor) Execute(cmd command.Command) error {
 
 				action, ok = e.commandToAction[cmd.GetType()]
 				if ok {
+					log.Printf("[INFO] execute action: %s", cmd.GetType())
 					err = action.Execute(action.GetStartStage(), cmd, nil)
 					return err
 				}
@@ -62,6 +65,7 @@ func (e *Executor) Execute(cmd command.Command) error {
 	} else {
 		action, ok := e.commandToAction[cmd.GetType()]
 		if ok {
+			log.Printf("[INFO] execute action: %s", cmd.GetType())
 			err = action.Execute(action.GetStartStage(), cmd, nil)
 			return err
 		}

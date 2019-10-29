@@ -17,6 +17,7 @@ import (
 
 var opts struct {
 	TelegramToken   string `long:"token" env:"TOKEN" required:"true"`
+	MongoDbUrl      string `long:"mongo-db-url" env:"MONGO_DB_URL" required:"true"`
 	AWSKey          string `long:"aws-key" env:"AWS_KEY" required:"true"`
 	AWSSecret       string `long:"aws-secret" env:"AWS_SECRET" required:"true"`
 	AWSRegion       string `long:"aws-region" env:"AWS_REGION" required:"true"`
@@ -39,7 +40,7 @@ func main() {
 		S3VoicePath:  opts.AWSS3VoicePath,
 	}
 
-	mongoSession, err := mgo.Dial("mongodb://localhost:27017")
+	mongoSession, err := mgo.Dial(opts.MongoDbUrl)
 
 	if err != nil {
 		log.Panic(err)

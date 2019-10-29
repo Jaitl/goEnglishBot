@@ -10,6 +10,7 @@ import (
 	"github.com/jaitl/goEnglishBot/app/telegram"
 	"github.com/jaitl/goEnglishBot/app/telegram/command"
 	"github.com/jaitl/goEnglishBot/app/utils"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -113,6 +114,7 @@ func (a *Action) voiceStage(cmd command.Command, session *action.Session) error 
 	opusFileTmpName := opusFileTmpUuid.String() + ".opus"
 	opusFilePath := filepath.Join(a.CommonSettings.TmpFolder, opusFileTmpName)
 
+	log.Println("[DEBUG] VOICE: Download file from Telegram")
 	err = utils.DownloadFile(opusFilePath, fileUrl)
 
 	if err != nil {
@@ -130,6 +132,7 @@ func (a *Action) voiceStage(cmd command.Command, session *action.Session) error 
 	mp3FileTmpName := mp3FileTmpUuid.String() + ".mp3"
 	mp3FilePath := filepath.Join(a.CommonSettings.TmpFolder, mp3FileTmpName)
 
+	log.Println("[DEBUG] VOICE: Convert file to MP3")
 	err = utils.OpusToMp3(opusFilePath, mp3FilePath)
 
 	if err != nil {
@@ -138,6 +141,7 @@ func (a *Action) voiceStage(cmd command.Command, session *action.Session) error 
 
 	defer os.Remove(mp3FilePath)
 
+	log.Println("[DEBUG] VOICE: Upload file to S3")
 	s3Url, err := a.AwsSession.S3UploadVoice(mp3FilePath, mp3FileTmpName)
 
 	if err != nil {
@@ -151,6 +155,7 @@ func (a *Action) voiceStage(cmd command.Command, session *action.Session) error 
 		}
 	}()
 
+	log.Println("[DEBUG] VOICE: Transcribe Voice file")
 	s3TranscribeUrl, err := a.AwsSession.TranscribeVoice(s3Url, mp3FileTmpName)
 
 	if err != nil {
@@ -166,6 +171,7 @@ func (a *Action) voiceStage(cmd command.Command, session *action.Session) error 
 
 	transcribeFilePath := mp3FilePath + ".trans"
 
+	log.Println("[DEBUG] VOICE: Download file from S3")
 	err = a.AwsSession.S3DownloadFile(s3TranscribeUrl, transcribeFilePath)
 
 	if err != nil {
