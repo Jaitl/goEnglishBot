@@ -65,11 +65,11 @@ func (a *Action) Execute(stage action.Stage, cmd command.Command, session *actio
 func (a *Action) startStage(cmd command.Command) error {
 	var text string
 
-	switch cmd.(type) {
+	switch mcmd := cmd.(type) {
 	case *command.AddCommand:
-		text = cmd.(*command.AddCommand).Text
+		text = mcmd.Text
 	case *command.TextCommand:
-		text = cmd.(*command.TextCommand).Text
+		text = mcmd.Text
 	default:
 		return errors.New("command does not belong to Start stage in AddAction")
 	}
