@@ -10,6 +10,7 @@ const (
 	ReceivedVoice    Type = "receivedVoice"
 	Audio            Type = "audio"
 	Voice            Type = "voice"
+	Me               Type = "me"
 )
 
 type Command interface {
