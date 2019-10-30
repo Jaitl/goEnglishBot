@@ -1,5 +1,5 @@
 # goEnglishBot
-[![Build Status](https://github.com/Jaitl/goEnglishBot/workflows/Go/badge.svg?branch=master)](https://github.com/Jaitl/goEnglishBot/actions?workflow=Go)
+[![Build Status](https://github.com/Jaitl/goEnglishBot/workflows/Build/badge.svg?branch=master)](https://github.com/Jaitl/goEnglishBot/actions?workflow=Build) [![Docker](https://github.com/Jaitl/goEnglishBot/workflows/Docker/badge.svg)](https://github.com/Jaitl/goEnglishBot/packages)
 
 Бот для Telegram для изучения английских фраз.
 
