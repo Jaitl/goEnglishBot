@@ -6,6 +6,7 @@ import (
 	"github.com/jaitl/goEnglishBot/app/action/add"
 	"github.com/jaitl/goEnglishBot/app/action/audio"
 	"github.com/jaitl/goEnglishBot/app/action/list"
+	"github.com/jaitl/goEnglishBot/app/action/me"
 	"github.com/jaitl/goEnglishBot/app/action/voice"
 	"github.com/jaitl/goEnglishBot/app/aws"
 	"github.com/jaitl/goEnglishBot/app/phrase"
@@ -17,6 +18,7 @@ import (
 
 var opts struct {
 	TelegramToken   string `long:"token" env:"TOKEN" required:"true"`
+	UserId          int    `long:"user-id" env:"USER_ID" required:"true"`
 	MongoDbUrl      string `long:"mongo-db-url" env:"MONGO_DB_URL" required:"true"`
 	AWSKey          string `long:"aws-key" env:"AWS_KEY" required:"true"`
 	AWSSecret       string `long:"aws-secret" env:"AWS_SECRET" required:"true"`
@@ -55,7 +57,7 @@ func main() {
 		log.Panic(err)
 	}
 
-	telegramBot, err := telegram.New(opts.TelegramToken)
+	telegramBot, err := telegram.New(opts.TelegramToken, opts.UserId)
 
 	if err != nil {
 		log.Panic(err)
@@ -66,6 +68,7 @@ func main() {
 		&list.Action{Bot: telegramBot, PhraseModel: phraseModel},
 		&audio.Action{Bot: telegramBot, PhraseModel: phraseModel, AwsSession: awsSession},
 		&voice.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel, CommonSettings: commonSettings},
+		&me.Action{Bot: telegramBot},
 	}
 
 	actionExecutor := action.NewExecutor(actionSession, actions)

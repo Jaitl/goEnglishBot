@@ -19,4 +19,5 @@ const (
 	List  Type = "list"
 	Audio Type = "audio"
 	Voice Type = "voice"
+	Me    Type = "me"
 )

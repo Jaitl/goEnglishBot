@@ -53,6 +53,8 @@ func parseTextCommand(userId int, cmd string) (Command, error) {
 				return nil, err
 			}
 			return &VoiceCommand{userId, int(incNumber)}, nil
+		case "/me":
+			return &MeCommand{userId}, nil
 		}
 	}
 
