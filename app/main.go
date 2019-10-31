@@ -18,6 +18,7 @@ import (
 
 var opts struct {
 	TelegramToken   string `long:"token" env:"TOKEN" required:"true"`
+	UserId          int    `long:"user-id" env:"USER_ID" required:"true"`
 	MongoDbUrl      string `long:"mongo-db-url" env:"MONGO_DB_URL" required:"true"`
 	AWSKey          string `long:"aws-key" env:"AWS_KEY" required:"true"`
 	AWSSecret       string `long:"aws-secret" env:"AWS_SECRET" required:"true"`
@@ -56,7 +57,7 @@ func main() {
 		log.Panic(err)
 	}
 
-	telegramBot, err := telegram.New(opts.TelegramToken)
+	telegramBot, err := telegram.New(opts.TelegramToken, opts.UserId)
 
 	if err != nil {
 		log.Panic(err)

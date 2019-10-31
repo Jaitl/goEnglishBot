@@ -8,11 +8,12 @@ import (
 )
 
 type Telegram struct {
+	userId       int
 	bot          *tgbotapi.BotAPI
 	updateChanel tgbotapi.UpdatesChannel
 }
 
-func New(token string) (*Telegram, error) {
+func New(token string, userId int) (*Telegram, error) {
 	bot, err := tgbotapi.NewBotAPI(token)
 
 	if err != nil {
@@ -30,21 +31,30 @@ func New(token string) (*Telegram, error) {
 		return nil, err
 	}
 
-	return &Telegram{bot: bot, updateChanel: updates}, nil
+	return &Telegram{userId: userId, bot: bot, updateChanel: updates}, nil
 }
 
 func (t *Telegram) Start(executor *action.Executor) {
 	for update := range t.updateChanel {
 		log.Printf("[DEBUG] new telegram message: %v", update)
-		go handleMessage(update, executor)
+		go t.handleMessage(update, executor)
 	}
 }
 
-func handleMessage(update tgbotapi.Update, executor *action.Executor) {
+func (t *Telegram) handleMessage(update tgbotapi.Update, executor *action.Executor) {
 	cmd, err := command.Parse(update)
 
 	if err != nil {
 		log.Printf("[ERROR] error during parse: %v", err)
+		return
+	}
+
+	if !t.accessFilter(cmd) {
+		err := t.Send(cmd.GetUserId(), "Доступ запрешен")
+		if err != nil {
+			log.Printf("[ERROR] error check access: %v", err)
+		}
+		log.Printf("[ERROR] Unknown user: %d", cmd.GetUserId())
 		return
 	}
 
@@ -53,6 +63,19 @@ func handleMessage(update tgbotapi.Update, executor *action.Executor) {
 	if err != nil {
 		log.Printf("[ERROR] error during execution cmd: %v", err)
 		return
+	}
+}
+
+func (t *Telegram) accessFilter(cmd command.Command) bool {
+	switch cmd.(type) {
+	case *command.MeCommand:
+		return true
+	default:
+		if t.userId != cmd.GetUserId() {
+			return false
+		}
+
+		return true
 	}
 }
 
