@@ -48,7 +48,7 @@ func New(accessKey, secretKey string, commonSettings *settings.CommonSettings) (
 	}
 
 	trans := translate.New(sess)
-	pollySes := polly.New(sessWithRegion)
+	pollySes := polly.New(sess)
 	transcribe := transcribeservice.New(sessWithRegion)
 	s3Uploader := s3manager.NewUploader(sessWithRegion)
 	s3Downloader := s3manager.NewDownloader(sessWithRegion)
@@ -87,7 +87,12 @@ func (s *Session) Translate(text string) (string, error) {
 }
 
 func (s *Session) Speech(text, name string) (string, error) {
-	input := &polly.SynthesizeSpeechInput{OutputFormat: aws.String("mp3"), Text: aws.String(text), VoiceId: aws.String("Matthew")}
+	input := &polly.SynthesizeSpeechInput{
+		Engine:       aws.String(polly.EngineNeural),
+		OutputFormat: aws.String(polly.OutputFormatMp3),
+		Text:         aws.String(text),
+		VoiceId:      aws.String(polly.VoiceIdMatthew),
+	}
 
 	output, err := s.polly.SynthesizeSpeech(input)
 

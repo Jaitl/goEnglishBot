@@ -49,7 +49,7 @@ func main() {
 	}
 
 	phraseModel := phrase.NewModel(mongoSession, "goEnglishBot")
-	actionSession := action.NewSessionMongoModel(mongoSession, "goEnglishBot")
+	actionSession := action.NewInMemorySessionModel()
 
 	awsSession, err := aws.New(opts.AWSKey, opts.AWSSecret, commonSettings)
 
