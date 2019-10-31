@@ -31,11 +31,7 @@ func NewExecutor(session *SessionModel, actions []Action) *Executor {
 }
 
 func (e *Executor) Execute(cmd command.Command) error {
-	ses, err := e.session.FindSession(cmd.GetUserId())
-
-	if err != nil {
-		return err
-	}
+	ses := e.session.FindSession(cmd.GetUserId())
 
 	if ses != nil {
 		action, ok := e.typeToAction[ses.ActionType]
@@ -45,19 +41,15 @@ func (e *Executor) Execute(cmd command.Command) error {
 
 			if ok {
 				log.Printf("[INFO] execute action: %s", cmd.GetType())
-				err = action.Execute(ses.Stage, cmd, ses)
+				err := action.Execute(ses.Stage, cmd, ses)
 				return err
 			} else {
-				err = e.session.ClearSession(cmd.GetUserId())
-
-				if err != nil {
-					return err
-				}
+				e.session.ClearSession(cmd.GetUserId())
 
 				action, ok = e.commandToAction[cmd.GetType()]
 				if ok {
 					log.Printf("[INFO] execute action: %s", cmd.GetType())
-					err = action.Execute(action.GetStartStage(), cmd, nil)
+					err := action.Execute(action.GetStartStage(), cmd, nil)
 					return err
 				}
 			}
@@ -66,7 +58,7 @@ func (e *Executor) Execute(cmd command.Command) error {
 		action, ok := e.commandToAction[cmd.GetType()]
 		if ok {
 			log.Printf("[INFO] execute action: %s", cmd.GetType())
-			err = action.Execute(action.GetStartStage(), cmd, nil)
+			err := action.Execute(action.GetStartStage(), cmd, nil)
 			return err
 		}
 	}

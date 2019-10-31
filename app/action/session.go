@@ -1,10 +1,5 @@
 package action
 
-import (
-	"github.com/globalsign/mgo"
-	"github.com/globalsign/mgo/bson"
-)
-
 type SessionKey string
 
 type Session struct {
@@ -15,8 +10,7 @@ type Session struct {
 }
 
 type SessionModel struct {
-	session    *mgo.Session
-	collection *mgo.Collection
+	session map[int]*Session
 }
 
 func CreateSession(userId int, action Type, stage Stage) *Session {
@@ -32,45 +26,24 @@ func (s *Session) AddData(key SessionKey, value string) {
 	s.Data[key] = value
 }
 
-func NewSessionMongoModel(session *mgo.Session, db string) *SessionModel {
-	c := session.DB(db).C("session")
-
-	return &SessionModel{session: session, collection: c}
+func NewInMemorySessionModel() *SessionModel {
+	return &SessionModel{session: make(map[int]*Session)}
 }
 
-func (m *SessionModel) FindSession(userId int) (*Session, error) {
-	var ses Session
-	err := m.collection.Find(bson.M{"_id": userId}).One(&ses)
+func (m *SessionModel) FindSession(userId int) *Session {
+	ses, ok := m.session[userId]
 
-	if err == mgo.ErrNotFound {
-		return nil, nil
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &ses, nil
-}
-
-func (m *SessionModel) ClearSession(userId int) error {
-	err := m.collection.Remove(bson.M{"_id": userId})
-
-	if err == mgo.ErrNotFound {
+	if !ok {
 		return nil
 	}
 
-	return err
+	return ses
 }
 
-func (m *SessionModel) UpdateSession(session *Session) error {
-	err := m.ClearSession(session.UserId)
+func (m *SessionModel) ClearSession(userId int) {
+	delete(m.session, userId)
+}
 
-	if err != nil {
-		return err
-	}
-
-	err = m.collection.Insert(session)
-
-	return err
+func (m *SessionModel) UpdateSession(session *Session) {
+	m.session[session.UserId] = session
 }

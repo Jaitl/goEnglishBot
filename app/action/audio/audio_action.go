@@ -69,6 +69,11 @@ func (a *Action) startStage(cmd command.Command) error {
 
 	defer os.Remove(pathToAudioFile)
 
+	err = a.Bot.Send(audCmd.UserId, phrs.EnglishText)
+	if err != nil {
+		return err
+	}
+
 	err = a.Bot.SendAudio(audCmd.UserId, pathToAudioFile)
 
 	return err

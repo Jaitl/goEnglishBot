@@ -84,7 +84,7 @@ func (a *Action) startStage(cmd command.Command) error {
 	ses.AddData(userPhrase, text)
 	ses.AddData(awsTranslate, trans)
 
-	err = a.ActionSession.UpdateSession(ses)
+	a.ActionSession.UpdateSession(ses)
 
 	if err != nil {
 		return err
@@ -110,10 +110,7 @@ func (a *Action) waitConfirmStage(cmd command.Command, session *action.Session) 
 
 	switch confirm.Data {
 	case "save":
-		err := a.ActionSession.ClearSession(cmd.GetUserId())
-		if err != nil {
-			return err
-		}
+		a.ActionSession.ClearSession(cmd.GetUserId())
 		incNumber, err := a.PhraseModel.NextIncNumber(confirm.UserId)
 		if err != nil {
 			return err
@@ -130,12 +127,8 @@ func (a *Action) waitConfirmStage(cmd command.Command, session *action.Session) 
 
 	case "custom":
 		session.Stage = WaitCustomTranslate
-		err := a.ActionSession.UpdateSession(session)
-		if err != nil {
-			return err
-		}
-		err = a.Bot.Send(cmd.GetUserId(), "Отправте свой перевод")
-		return err
+		a.ActionSession.UpdateSession(session)
+		return a.Bot.Send(cmd.GetUserId(), "Отправте свой перевод")
 	}
 
 	return nil
@@ -148,11 +141,7 @@ func (a *Action) waitCustomTranslateStage(cmd command.Command, session *action.S
 		return errors.New("command does not belong to WaitCustomTranslate stage in AddAction")
 	}
 
-	err := a.ActionSession.ClearSession(cmd.GetUserId())
-
-	if err != nil {
-		return err
-	}
+	a.ActionSession.ClearSession(cmd.GetUserId())
 
 	incNumber, err := a.PhraseModel.NextIncNumber(translate.UserId)
 	if err != nil {

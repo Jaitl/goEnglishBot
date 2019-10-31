@@ -80,10 +80,7 @@ func (a *Action) startStage(cmd command.Command) error {
 	ses := action.CreateSession(cmd.GetUserId(), action.Voice, Voice)
 	ses.AddData(phraseId, string(voiceCmd.IncNumber))
 	ses.AddData(phraseText, phrs.EnglishText)
-	err = a.ActionSession.UpdateSession(ses)
-	if err != nil {
-		return err
-	}
+	a.ActionSession.UpdateSession(ses)
 
 	msg := fmt.Sprintf(voiceMsg, phrs.EnglishText)
 	err = a.Bot.Send(voiceCmd.GetUserId(), msg)
@@ -94,11 +91,7 @@ func (a *Action) startStage(cmd command.Command) error {
 func (a *Action) voiceStage(cmd command.Command, session *action.Session) error {
 	voiceCmd := cmd.(*command.ReceivedVoiceCommand)
 
-	err := a.ActionSession.ClearSession(cmd.GetUserId())
-
-	if err != nil {
-		return err
-	}
+	a.ActionSession.ClearSession(cmd.GetUserId())
 
 	fileUrl, err := a.Bot.GetFilePath(voiceCmd.FileID)
 
