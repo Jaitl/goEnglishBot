@@ -54,6 +54,8 @@ func (model *Model) AllPhrases(userId int) ([]Phrase, error) {
 		return nil, err
 	}
 
+	defer cur.Close(context.TODO())
+
 	for cur.Next(context.TODO()) {
 		var elem Phrase
 		err := cur.Decode(&elem)
@@ -62,6 +64,10 @@ func (model *Model) AllPhrases(userId int) ([]Phrase, error) {
 		} else {
 			phrases = append(phrases, elem)
 		}
+	}
+
+	if err := cur.Err(); err != nil {
+		log.Printf("[ERROR] Fail during work with coursor: %v", err)
 	}
 
 	return phrases, nil
