@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/globalsign/mgo"
 	"github.com/jaitl/goEnglishBot/app/action"
 	"github.com/jaitl/goEnglishBot/app/action/add"
 	"github.com/jaitl/goEnglishBot/app/action/audio"
@@ -13,6 +12,8 @@ import (
 	"github.com/jaitl/goEnglishBot/app/settings"
 	"github.com/jaitl/goEnglishBot/app/telegram"
 	"github.com/jessevdk/go-flags"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 )
 
@@ -42,13 +43,18 @@ func main() {
 		S3VoicePath:  opts.AWSS3VoicePath,
 	}
 
-	mongoSession, err := mgo.Dial(opts.MongoDbUrl)
+	client, err := mongo.NewClient(options.Client().ApplyURI(opts.MongoDbUrl))
 
 	if err != nil {
 		log.Panic(err)
 	}
 
-	phraseModel := phrase.NewModel(mongoSession, "goEnglishBot")
+	phraseModel, err := phrase.NewModel(client, "goEnglishBot")
+
+	if err != nil {
+		log.Panic(err)
+	}
+
 	actionSession := action.NewInMemorySessionModel()
 
 	awsSession, err := aws.New(opts.AWSKey, opts.AWSSecret, commonSettings)
