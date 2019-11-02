@@ -1,11 +1,16 @@
 package phrase
 
 import (
-	"github.com/globalsign/mgo"
-	"github.com/globalsign/mgo/bson"
+	"context"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -13,27 +18,41 @@ const (
 )
 
 type Phrase struct {
-	Id          bson.ObjectId `bson:"_id,omitempty"`
-	UserId      int           `bson:"userId"`
-	IncNumber   int           `bson:"incNumber"`
-	EnglishText string        `bson:"englishText"`
-	RussianText string        `bson:"russianText"`
-	IsMemorized bool          `bson:"isMemorized"`
+	Id          primitive.ObjectID `bson:"_id,omitempty"`
+	UserId      int                `bson:"userId"`
+	IncNumber   int                `bson:"incNumber"`
+	EnglishText string             `bson:"englishText"`
+	RussianText string             `bson:"russianText"`
+	IsMemorized bool               `bson:"isMemorized"`
 }
 
 type Model struct {
-	session    *mgo.Session
-	collection *mgo.Collection
+	collection *mongo.Collection
 }
 
-func NewModel(session *mgo.Session, db string) *Model {
-	c := session.DB(db).C("phrase")
+func NewModel(client *mongo.Client, db string) (*Model, error) {
+	err := client.Connect(context.Background())
 
-	return &Model{session: session, collection: c}
+	if err != nil {
+		return nil, err
+	}
+
+	ctxPing, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	err = client.Ping(ctxPing, nil)
+
+	defer cancel()
+
+	if err != nil {
+		return nil, err
+	}
+
+	collection := client.Database(db).Collection("phrase")
+
+	return &Model{collection: collection}, nil
 }
 
 func (model *Model) CreatePhrase(userId, incNumber int, textEnglish, textRussian string) error {
-	err := model.collection.Insert(Phrase{
+	_, err := model.collection.InsertOne(context.TODO(), Phrase{
 		UserId:      userId,
 		IncNumber:   incNumber,
 		EnglishText: textEnglish,
@@ -46,10 +65,20 @@ func (model *Model) CreatePhrase(userId, incNumber int, textEnglish, textRussian
 func (model *Model) AllPhrases(userId int) ([]Phrase, error) {
 	var phrases []Phrase
 
-	err := model.collection.Find(bson.M{"isMemorized": false, "userId": userId}).All(&phrases)
+	cur, err := model.collection.Find(context.TODO(), bson.M{"isMemorized": false, "userId": userId})
 
 	if err != nil {
 		return nil, err
+	}
+
+	for cur.Next(context.TODO()) {
+		var elem Phrase
+		err := cur.Decode(&elem)
+		if err != nil {
+			log.Printf("[ERROR] Fail to decode phrase: %v", err)
+		} else {
+			phrases = append(phrases, elem)
+		}
 	}
 
 	return phrases, nil
@@ -58,9 +87,12 @@ func (model *Model) AllPhrases(userId int) ([]Phrase, error) {
 func (model *Model) NextIncNumber(userId int) (int, error) {
 	var phrase Phrase
 
-	err := model.collection.Find(bson.M{"isMemorized": false, "userId": userId}).Sort("-incNumber").One(&phrase)
+	findOptions := options.FindOne()
+	findOptions.SetSort(bson.D{{Key: "incNumber", Value: -1}})
 
-	if err == mgo.ErrNotFound {
+	err := model.collection.FindOne(context.TODO(), bson.M{"isMemorized": false, "userId": userId}, findOptions).Decode(&phrase)
+
+	if err == mongo.ErrNoDocuments {
 		return 1, nil
 	}
 
@@ -74,9 +106,9 @@ func (model *Model) NextIncNumber(userId int) (int, error) {
 func (model *Model) FindPhraseByIncNumber(userId, incNumber int) (*Phrase, error) {
 	var phrase Phrase
 
-	err := model.collection.Find(bson.M{"incNumber": incNumber, "userId": userId}).One(&phrase)
+	err := model.collection.FindOne(context.TODO(), bson.M{"incNumber": incNumber, "userId": userId}).Decode(&phrase)
 
-	if err == mgo.ErrNotFound {
+	if err == mongo.ErrNoDocuments {
 		return nil, nil
 	}
 
