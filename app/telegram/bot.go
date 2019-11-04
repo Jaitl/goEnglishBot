@@ -114,8 +114,24 @@ func (t *Telegram) SendMarkdown(chatId int, message string) error {
 	return err
 }
 
-func (t *Telegram) SendAudio(chatId int, pathToVoice string) error {
+func (t *Telegram) SendAudio(chatId int, pathToVoice string) (string, error) {
 	msg := tgbotapi.NewAudioUpload(int64(chatId), pathToVoice)
+
+	message, err := t.bot.Send(msg)
+
+	if err != nil {
+		return "", err
+	}
+
+	if message.Audio != nil {
+		return message.Audio.FileID, nil
+	}
+
+	return "", nil
+}
+
+func (t *Telegram) SendAudioId(chatId int, audioId string) error {
+	msg := tgbotapi.NewAudioShare(int64(chatId), audioId)
 
 	_, err := t.bot.Send(msg)
 

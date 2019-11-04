@@ -14,6 +14,7 @@ type Phrase struct {
 	EnglishText string             `bson:"englishText"`
 	RussianText string             `bson:"russianText"`
 	IsMemorized bool               `bson:"isMemorized"`
+	AudioId     string             `bson:"audioId"`
 }
 
 const (
