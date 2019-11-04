@@ -7,6 +7,7 @@ import (
 	"github.com/jaitl/goEnglishBot/app/phrase"
 	"github.com/jaitl/goEnglishBot/app/telegram"
 	"github.com/jaitl/goEnglishBot/app/telegram/command"
+	"log"
 	"os"
 )
 
@@ -55,6 +56,15 @@ func (a *Action) startStage(cmd command.Command) error {
 		return err
 	}
 
+	if phrs.AudioId != "" {
+		log.Println("[DEBUG] Send audio from cache")
+		err = a.Bot.Send(audCmd.UserId, phrs.EnglishText)
+		if err != nil {
+			return err
+		}
+		return a.Bot.SendAudioId(audCmd.UserId, phrs.AudioId)
+	}
+
 	fileName, err := phrs.Title()
 
 	if err != nil {
@@ -74,7 +84,21 @@ func (a *Action) startStage(cmd command.Command) error {
 		return err
 	}
 
-	err = a.Bot.SendAudio(audCmd.UserId, pathToAudioFile)
+	log.Println("[DEBUG] Upload new audio file")
 
-	return err
+	audioId, err := a.Bot.SendAudio(audCmd.UserId, pathToAudioFile)
+
+	if err != nil {
+		return err
+	}
+
+	if audioId != "" {
+		err := a.PhraseModel.UpdateAudioId(phrs.Id, audioId)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

@@ -3,6 +3,7 @@ package phrase
 import (
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
@@ -41,6 +42,7 @@ func (model *Model) CreatePhrase(userId, incNumber int, textEnglish, textRussian
 		EnglishText: textEnglish,
 		RussianText: textRussian,
 		IsMemorized: false,
+		AudioId:     "",
 	})
 	return err
 }
@@ -106,4 +108,13 @@ func (model *Model) FindPhraseByIncNumber(userId, incNumber int) (*Phrase, error
 	}
 
 	return &phrase, nil
+}
+
+func (model *Model) UpdateAudioId(id primitive.ObjectID, audioId string) error {
+	filter := bson.M{"_id": id}
+	update := bson.D{{Key: "$set", Value: bson.M{"audioId": audioId}}}
+
+	_, err := model.collection.UpdateOne(context.TODO(), filter, update)
+
+	return err
 }
