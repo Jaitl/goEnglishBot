@@ -55,6 +55,8 @@ func parseTextCommand(userId int, cmd string) (Command, error) {
 			return &VoiceCommand{userId, int(incNumber)}, nil
 		case "/me":
 			return &MeCommand{userId}, nil
+		default:
+			return nil, fmt.Errorf("unknown command: %+v", cmd)
 		}
 	}
 

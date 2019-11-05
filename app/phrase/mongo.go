@@ -2,6 +2,7 @@ package phrase
 
 import (
 	"context"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -100,7 +101,7 @@ func (model *Model) FindPhraseByIncNumber(userId, incNumber int) (*Phrase, error
 	err := model.collection.FindOne(context.TODO(), bson.M{"incNumber": incNumber, "userId": userId}).Decode(&phrase)
 
 	if err == mongo.ErrNoDocuments {
-		return nil, nil
+		return nil, fmt.Errorf("phrase with incNumber: %d not found", incNumber)
 	}
 
 	if err != nil {
