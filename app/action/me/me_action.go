@@ -3,8 +3,8 @@ package me
 import (
 	"fmt"
 	"github.com/jaitl/goEnglishBot/app/action"
+	"github.com/jaitl/goEnglishBot/app/command"
 	"github.com/jaitl/goEnglishBot/app/telegram"
-	"github.com/jaitl/goEnglishBot/app/telegram/command"
 	"strconv"
 )
 
