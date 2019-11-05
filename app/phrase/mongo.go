@@ -119,3 +119,13 @@ func (model *Model) UpdateAudioId(id primitive.ObjectID, audioId string) error {
 
 	return err
 }
+
+func (model *Model) RemovePhrase(userId, incNumber int) (int64, error) {
+	delRes, err := model.collection.DeleteOne(context.TODO(), bson.M{"incNumber": incNumber, "userId": userId})
+
+	if err != nil {
+		return 0, err
+	}
+
+	return delRes.DeletedCount, nil
+}

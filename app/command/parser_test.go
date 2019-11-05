@@ -20,6 +20,8 @@ func Test_parseTextCommand(t *testing.T) {
 		{"list", args{1, "/list"}, &ListCommand{1}},
 		{"audio", args{1, "/audio 10"}, &AudioCommand{1, 10}},
 		{"me", args{1, "/me"}, &MeCommand{1}},
+		{"remove", args{1, "/remove 10"}, &RemoveCommand{1, 10}},
+		{"voice", args{1, "/voice 10"}, &VoiceCommand{1, 10}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

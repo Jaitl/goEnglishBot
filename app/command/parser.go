@@ -53,6 +53,15 @@ func parseTextCommand(userId int, cmd string) (Command, error) {
 				return nil, err
 			}
 			return &VoiceCommand{userId, int(incNumber)}, nil
+		case "/remove", "/r":
+			if len(parts) != 2 {
+				return nil, errors.New("not enough arguments for the remove command")
+			}
+			incNumber, err := strconv.ParseInt(parts[1], 10, 64)
+			if err != nil {
+				return nil, err
+			}
+			return &RemoveCommand{userId, int(incNumber)}, nil
 		case "/me":
 			return &MeCommand{userId}, nil
 		default:
