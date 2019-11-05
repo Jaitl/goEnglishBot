@@ -11,6 +11,7 @@ const (
 	Audio            Type = "audio"
 	Voice            Type = "voice"
 	Me               Type = "me"
+	Remove           Type = "remove"
 )
 
 type Command interface {

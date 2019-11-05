@@ -90,7 +90,11 @@ func (a *Action) startStage(cmd command.Command) error {
 		return err
 	}
 
-	keyboard := map[telegram.ButtonValue]telegram.ButtonName{"save": "Сохранить", "custom": "Свой перевод"}
+	keyboard := map[telegram.ButtonValue]telegram.ButtonName{
+		"save":   "Сохранить",
+		"custom": "Свой перевод",
+		"cancel": "Отменить",
+	}
 
 	err = a.Bot.SendWithKeyboard(cmd.GetUserId(), trans, keyboard)
 
@@ -109,6 +113,9 @@ func (a *Action) waitConfirmStage(cmd command.Command, session *action.Session) 
 	}
 
 	switch confirm.Data {
+	case "cancel":
+		a.ActionSession.ClearSession(cmd.GetUserId())
+
 	case "save":
 		a.ActionSession.ClearSession(cmd.GetUserId())
 		incNumber, err := a.PhraseModel.NextIncNumber(confirm.UserId)

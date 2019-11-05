@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"fmt"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/jaitl/goEnglishBot/app/action"
 	"github.com/jaitl/goEnglishBot/app/command"
@@ -45,7 +46,14 @@ func (t *Telegram) handleMessage(update tgbotapi.Update, executor *action.Execut
 	cmd, err := command.Parse(update)
 
 	if err != nil {
-		log.Printf("[ERROR] error during parse: %v", err)
+		msg := fmt.Sprintf("[ERROR] error during parse: %v", err)
+		log.Println(msg)
+		if update.Message != nil {
+			err := t.Send(int(update.Message.Chat.ID), msg)
+			if err != nil {
+				log.Printf("[ERROR] error during send parse error: %v", err)
+			}
+		}
 		return
 	}
 
@@ -61,7 +69,12 @@ func (t *Telegram) handleMessage(update tgbotapi.Update, executor *action.Execut
 	err = executor.Execute(cmd)
 
 	if err != nil {
-		log.Printf("[ERROR] error during execution cmd: %v", err)
+		msg := fmt.Sprintf("[ERROR] error during execution cmd: %s, err: %v", cmd.GetType(), err)
+		log.Println(msg)
+		err := t.Send(cmd.GetUserId(), msg)
+		if err != nil {
+			log.Printf("[ERROR] error during send execution error: %v", err)
+		}
 		return
 	}
 }

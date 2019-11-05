@@ -2,6 +2,7 @@ package phrase
 
 import (
 	"context"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -100,7 +101,7 @@ func (model *Model) FindPhraseByIncNumber(userId, incNumber int) (*Phrase, error
 	err := model.collection.FindOne(context.TODO(), bson.M{"incNumber": incNumber, "userId": userId}).Decode(&phrase)
 
 	if err == mongo.ErrNoDocuments {
-		return nil, nil
+		return nil, fmt.Errorf("phrase with incNumber: %d not found", incNumber)
 	}
 
 	if err != nil {
@@ -117,4 +118,14 @@ func (model *Model) UpdateAudioId(id primitive.ObjectID, audioId string) error {
 	_, err := model.collection.UpdateOne(context.TODO(), filter, update)
 
 	return err
+}
+
+func (model *Model) RemovePhrase(userId, incNumber int) (int64, error) {
+	delRes, err := model.collection.DeleteOne(context.TODO(), bson.M{"incNumber": incNumber, "userId": userId})
+
+	if err != nil {
+		return 0, err
+	}
+
+	return delRes.DeletedCount, nil
 }
