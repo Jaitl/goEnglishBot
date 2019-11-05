@@ -1,7 +1,7 @@
 package action
 
 import (
-	"github.com/jaitl/goEnglishBot/app/telegram/command"
+	"github.com/jaitl/goEnglishBot/app/command"
 	"log"
 )
 

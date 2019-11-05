@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/jaitl/goEnglishBot/app/action"
 	"github.com/jaitl/goEnglishBot/app/aws"
+	"github.com/jaitl/goEnglishBot/app/command"
 	"github.com/jaitl/goEnglishBot/app/phrase"
 	"github.com/jaitl/goEnglishBot/app/telegram"
-	"github.com/jaitl/goEnglishBot/app/telegram/command"
 )
 
 type Action struct {

@@ -3,7 +3,7 @@ package telegram
 import (
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/jaitl/goEnglishBot/app/action"
-	"github.com/jaitl/goEnglishBot/app/telegram/command"
+	"github.com/jaitl/goEnglishBot/app/command"
 	"log"
 )
 
