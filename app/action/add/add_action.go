@@ -115,6 +115,7 @@ func (a *Action) waitConfirmStage(cmd command.Command, session *action.Session) 
 	switch confirm.Data {
 	case "cancel":
 		a.ActionSession.ClearSession(cmd.GetUserId())
+		return a.Bot.Send(cmd.GetUserId(), "Добавление фразы отменено")
 
 	case "save":
 		a.ActionSession.ClearSession(cmd.GetUserId())
