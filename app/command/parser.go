@@ -13,6 +13,11 @@ func Parse(update tgbotapi.Update) (Command, error) {
 		if update.Message.Voice != nil {
 			return parseVoiceCommand(update.Message.From.ID, update.Message.Voice)
 		} else {
+			incNumber, err := strconv.ParseInt(update.Message.Text, 10, 32)
+			if err == nil {
+				return parseNumberCommand(update.Message.From.ID, int(incNumber))
+			}
+
 			return parseTextCommand(update.Message.From.ID, update.Message.Text)
 		}
 	}
@@ -35,15 +40,6 @@ func parseTextCommand(userId int, cmd string) (Command, error) {
 			return &AddCommand{userId, text}, nil
 		case "/list", "/l":
 			return &ListCommand{userId}, nil
-		case "/audio", "/a":
-			if len(parts) != 2 {
-				return nil, errors.New("not enough arguments for the audio command")
-			}
-			incNumber, err := strconv.ParseInt(parts[1], 10, 64)
-			if err != nil {
-				return nil, err
-			}
-			return &AudioCommand{userId, int(incNumber)}, nil
 		case "/voice", "/v":
 			if len(parts) != 2 {
 				return nil, errors.New("not enough arguments for the voice command")
@@ -70,6 +66,10 @@ func parseTextCommand(userId int, cmd string) (Command, error) {
 	}
 
 	return &TextCommand{userId, cmd}, nil
+}
+
+func parseNumberCommand(userId, incNumber int) (Command, error) {
+	return &NumberCommand{userId, incNumber}, nil
 }
 
 func parseVoiceCommand(userId int, voice *tgbotapi.Voice) (Command, error) {

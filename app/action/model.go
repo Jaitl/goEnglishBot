@@ -17,7 +17,7 @@ type Stage string
 const (
 	Add    Type = "add"
 	List   Type = "list"
-	Audio  Type = "audio"
+	Card   Type = "card"
 	Voice  Type = "voice"
 	Me     Type = "me"
 	Remove Type = "remove"

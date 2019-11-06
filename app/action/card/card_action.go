@@ -1,4 +1,4 @@
-package audio
+package card
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ const (
 )
 
 func (a *Action) GetType() action.Type {
-	return action.Audio
+	return action.Card
 }
 
 func (a *Action) GetStartStage() action.Stage {
@@ -32,7 +32,7 @@ func (a *Action) GetStartStage() action.Stage {
 func (a *Action) GetWaitCommands(stage action.Stage) map[command.Type]bool {
 	switch stage {
 	case Start:
-		return map[command.Type]bool{command.Audio: true}
+		return map[command.Type]bool{command.Number: true}
 	}
 
 	return nil
@@ -48,7 +48,7 @@ func (a *Action) Execute(stage action.Stage, cmd command.Command, session *actio
 }
 
 func (a *Action) startStage(cmd command.Command) error {
-	audCmd := cmd.(*command.AudioCommand)
+	audCmd := cmd.(*command.NumberCommand)
 
 	phrs, err := a.PhraseModel.FindPhraseByIncNumber(audCmd.GetUserId(), audCmd.IncNumber)
 
@@ -56,12 +56,13 @@ func (a *Action) startStage(cmd command.Command) error {
 		return err
 	}
 
+	err = a.Bot.SendMarkdown(audCmd.UserId, phrase.ToMarkdown(phrs))
+	if err != nil {
+		return err
+	}
+
 	if phrs.AudioId != "" {
 		log.Println("[DEBUG] Send audio from cache")
-		err = a.Bot.Send(audCmd.UserId, phrs.EnglishText)
-		if err != nil {
-			return err
-		}
 		return a.Bot.SendAudioId(audCmd.UserId, phrs.AudioId)
 	}
 
@@ -78,11 +79,6 @@ func (a *Action) startStage(cmd command.Command) error {
 	}
 
 	defer os.Remove(pathToAudioFile)
-
-	err = a.Bot.Send(audCmd.UserId, phrs.EnglishText)
-	if err != nil {
-		return err
-	}
 
 	log.Println("[DEBUG] Upload new audio file")
 

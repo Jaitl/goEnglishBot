@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/jaitl/goEnglishBot/app/action"
 	"github.com/jaitl/goEnglishBot/app/action/add"
-	"github.com/jaitl/goEnglishBot/app/action/audio"
+	"github.com/jaitl/goEnglishBot/app/action/card"
 	"github.com/jaitl/goEnglishBot/app/action/list"
 	"github.com/jaitl/goEnglishBot/app/action/me"
 	"github.com/jaitl/goEnglishBot/app/action/remove"
@@ -73,7 +73,7 @@ func main() {
 	actions := []action.Action{
 		&add.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel},
 		&list.Action{Bot: telegramBot, PhraseModel: phraseModel},
-		&audio.Action{Bot: telegramBot, PhraseModel: phraseModel, AwsSession: awsSession},
+		&card.Action{Bot: telegramBot, PhraseModel: phraseModel, AwsSession: awsSession},
 		&voice.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel, CommonSettings: commonSettings},
 		&me.Action{Bot: telegramBot},
 		&remove.Action{Bot: telegramBot, PhraseModel: phraseModel},
