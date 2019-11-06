@@ -24,6 +24,10 @@ func ToMarkdownTable(ph []Phrase) string {
 	return strings.Join(rows, "\n")
 }
 
+func ToMarkdown(p *Phrase) string {
+	return prepareTableRow(p)
+}
+
 func prepareTableRow(p *Phrase) string {
 	return fmt.Sprintf(rowPattern, p.IncNumber, p.EnglishText, p.RussianText)
 }

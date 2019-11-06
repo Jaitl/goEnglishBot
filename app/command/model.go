@@ -8,7 +8,7 @@ const (
 	Text             Type = "text"
 	KeyboardCallback Type = "keyboardCallback"
 	ReceivedVoice    Type = "receivedVoice"
-	Audio            Type = "audio"
+	Number            Type = "number"
 	Voice            Type = "voice"
 	Me               Type = "me"
 	Remove           Type = "remove"
