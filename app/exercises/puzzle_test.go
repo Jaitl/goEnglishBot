@@ -86,3 +86,28 @@ func TestHandleNotConnectAnswer(t *testing.T) {
 	assert.ElementsMatch(t, result.Variants, []string{"she's", "hiding", "because", "embarrassed"})
 	assert.Equal(t, puzzle.currentPosition, 1)
 }
+
+func TestHandlePositionBounds(t *testing.T) {
+	puzzle := NewPuzzle("She's hiding")
+
+	result := puzzle.HandleAnswer("she's")
+	assert.True(t, result.IsCorrectAnswer)
+	assert.False(t, result.IsFinish)
+	assert.ElementsMatch(t, result.Variants, []string{"hiding"})
+	assert.Equal(t, "she's", result.AnsweredText)
+	assert.Equal(t, puzzle.currentPosition, 1)
+
+	result = puzzle.HandleAnswer("hiding")
+	assert.True(t, result.IsCorrectAnswer)
+	assert.True(t, result.IsFinish)
+	assert.ElementsMatch(t, result.Variants, []string{})
+	assert.Equal(t, "she's hiding", result.AnsweredText)
+	assert.Equal(t, puzzle.currentPosition, 2)
+
+	result = puzzle.HandleAnswer("because")
+	assert.False(t, result.IsCorrectAnswer)
+	assert.True(t, result.IsFinish)
+	assert.ElementsMatch(t, result.Variants, []string{})
+	assert.Equal(t, "she's hiding", result.AnsweredText)
+	assert.Equal(t, puzzle.currentPosition, 2)
+}

@@ -21,7 +21,7 @@ type PuzzleResult struct {
 }
 
 func NewPuzzle(text string) *Puzzle {
-	cText := clearTest(strings.ToLower(text))
+	cText := clearText(strings.ToLower(text))
 	textParts := strings.Split(strings.ToLower(cText), " ")
 	uniqueParts := unique(textParts)
 	variants := make([]string, len(uniqueParts))
@@ -47,11 +47,15 @@ func (p *Puzzle) Start() *PuzzleResult {
 }
 
 func (p *Puzzle) HandleAnswer(answer string) *PuzzleResult {
-	isCorrectAnswer := strings.ToLower(p.text[p.currentPosition]) == answer
+	isCorrectAnswer := false
 
-	if isCorrectAnswer {
-		p.currentPosition += 1
-		p.variants = computeVariants(p.text[p.currentPosition:], p.variants)
+	if p.currentPosition < len(p.text) {
+		isCorrectAnswer = strings.ToLower(p.text[p.currentPosition]) == answer
+
+		if isCorrectAnswer {
+			p.currentPosition += 1
+			p.variants = computeVariants(p.text[p.currentPosition:], p.variants)
+		}
 	}
 
 	return &PuzzleResult{
@@ -81,7 +85,7 @@ func computeVariants(text []string, curVariants []string) []string {
 	return variants
 }
 
-func clearTest(text string) string {
+func clearText(text string) string {
 	reg := regexp.MustCompile(`[^a-zA-Z1-9\s\\']+`)
 
 	return reg.ReplaceAllString(text, "")
