@@ -5,17 +5,29 @@ import "github.com/go-telegram-bot-api/telegram-bot-api"
 type ButtonName string
 type ButtonValue string
 
+const (
+	RowSize int = 3
+)
+
 func CreateKeyboard(keys map[ButtonValue]ButtonName) tgbotapi.InlineKeyboardMarkup {
-	keyboard := tgbotapi.InlineKeyboardMarkup{}
+	var keyboard [][]tgbotapi.InlineKeyboardButton
+	row := make([]tgbotapi.InlineKeyboardButton, 0, RowSize)
 
-	var row []tgbotapi.InlineKeyboardButton
-
+	curRowCount := 0
 	for btValue, btName := range keys {
+		curRowCount += 1
 		btn := tgbotapi.NewInlineKeyboardButtonData(string(btName), string(btValue))
 		row = append(row, btn)
+		if curRowCount >= RowSize {
+			curRowCount = 0
+			keyboard = append(keyboard, row)
+			row = make([]tgbotapi.InlineKeyboardButton, 0, RowSize)
+		}
 	}
 
-	keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, row)
+	if curRowCount > 0 {
+		keyboard = append(keyboard, row)
+	}
 
-	return keyboard
+	return tgbotapi.NewInlineKeyboardMarkup(keyboard...)
 }

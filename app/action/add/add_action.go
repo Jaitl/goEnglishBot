@@ -86,10 +86,6 @@ func (a *Action) startStage(cmd command.Command) error {
 
 	a.ActionSession.UpdateSession(ses)
 
-	if err != nil {
-		return err
-	}
-
 	keyboard := map[telegram.ButtonValue]telegram.ButtonName{
 		"save":   "Сохранить",
 		"custom": "Свой перевод",
@@ -123,7 +119,7 @@ func (a *Action) waitConfirmStage(cmd command.Command, session *action.Session) 
 		if err != nil {
 			return err
 		}
-		err = a.PhraseModel.CreatePhrase(cmd.GetUserId(), incNumber, session.Data[userPhrase], session.Data[awsTranslate])
+		err = a.PhraseModel.CreatePhrase(cmd.GetUserId(), incNumber, session.GetStringData(userPhrase), session.GetStringData(awsTranslate))
 		if err != nil {
 			return err
 		}
@@ -156,7 +152,7 @@ func (a *Action) waitCustomTranslateStage(cmd command.Command, session *action.S
 		return err
 	}
 
-	err = a.PhraseModel.CreatePhrase(cmd.GetUserId(), incNumber, session.Data[userPhrase], translate.Text)
+	err = a.PhraseModel.CreatePhrase(cmd.GetUserId(), incNumber, session.GetStringData(userPhrase), translate.Text)
 
 	if err != nil {
 		return err

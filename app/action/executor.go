@@ -1,6 +1,7 @@
 package action
 
 import (
+	"fmt"
 	"github.com/jaitl/goEnglishBot/app/command"
 	"log"
 )
@@ -63,5 +64,5 @@ func (e *Executor) Execute(cmd command.Command) error {
 		}
 	}
 
-	return nil
+	return fmt.Errorf("not found action for: %s", cmd.GetType())
 }

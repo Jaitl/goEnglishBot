@@ -8,10 +8,12 @@ const (
 	Text             Type = "text"
 	KeyboardCallback Type = "keyboardCallback"
 	ReceivedVoice    Type = "receivedVoice"
-	Number            Type = "number"
+	Number           Type = "number"
 	Voice            Type = "voice"
 	Me               Type = "me"
 	Remove           Type = "remove"
+	PuzzleAudio      Type = "puzzleAudio"
+	PuzzleTrans      Type = "puzzleTrans"
 )
 
 type Command interface {
