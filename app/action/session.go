@@ -33,6 +33,10 @@ func (s *Session) GetStringData(key SessionKey) string {
 	return s.Data[key].(string)
 }
 
+func (s *Session) GetIntData(key SessionKey) int {
+	return s.Data[key].(int)
+}
+
 func NewInMemorySessionModel() *SessionModel {
 	return &SessionModel{session: make(map[int]*Session)}
 }

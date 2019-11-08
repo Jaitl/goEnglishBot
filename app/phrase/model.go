@@ -1,6 +1,7 @@
 package phrase
 
 import (
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"strconv"
 )
@@ -15,7 +16,11 @@ type Phrase struct {
 	AudioId     string             `bson:"audioId"`
 }
 
-func (phrase *Phrase) Title() (string, error) {
-	title := "#" + strconv.Itoa(phrase.IncNumber)
+func (p *Phrase) Title() (string, error) {
+	title := "#" + strconv.Itoa(p.IncNumber)
 	return title, nil
+}
+
+func (p *Phrase) ToMarkdown() string {
+	return fmt.Sprintf(rowPattern, p.IncNumber, p.EnglishText, p.RussianText)
 }
