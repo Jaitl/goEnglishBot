@@ -86,10 +86,6 @@ func (a *Action) startStage(cmd command.Command) error {
 
 	a.ActionSession.UpdateSession(ses)
 
-	if err != nil {
-		return err
-	}
-
 	keyboard := map[telegram.ButtonValue]telegram.ButtonName{
 		"save":   "Сохранить",
 		"custom": "Свой перевод",

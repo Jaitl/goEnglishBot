@@ -21,4 +21,5 @@ const (
 	Voice  Type = "voice"
 	Me     Type = "me"
 	Remove Type = "remove"
+	Puzzle Type = "puzzle"
 )

@@ -49,6 +49,24 @@ func parseTextCommand(userId int, cmd string) (Command, error) {
 				return nil, err
 			}
 			return &VoiceCommand{userId, int(incNumber)}, nil
+		case "/puzzleAudio", "/pa":
+			if len(parts) != 2 {
+				return nil, errors.New("not enough arguments for the puzzleAudio command")
+			}
+			incNumber, err := strconv.ParseInt(parts[1], 10, 64)
+			if err != nil {
+				return nil, err
+			}
+			return &PuzzleAudioCommand{userId, int(incNumber)}, nil
+		case "/puzzleTrans", "/pt":
+			if len(parts) != 2 {
+				return nil, errors.New("not enough arguments for the puzzleTrans command")
+			}
+			incNumber, err := strconv.ParseInt(parts[1], 10, 64)
+			if err != nil {
+				return nil, err
+			}
+			return &PuzzleTransCommand{userId, int(incNumber)}, nil
 		case "/remove", "/r":
 			if len(parts) != 2 {
 				return nil, errors.New("not enough arguments for the remove command")

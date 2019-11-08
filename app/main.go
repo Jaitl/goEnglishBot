@@ -7,6 +7,7 @@ import (
 	"github.com/jaitl/goEnglishBot/app/action/list"
 	"github.com/jaitl/goEnglishBot/app/action/me"
 	"github.com/jaitl/goEnglishBot/app/action/remove"
+	"github.com/jaitl/goEnglishBot/app/action/training"
 	"github.com/jaitl/goEnglishBot/app/action/voice"
 	"github.com/jaitl/goEnglishBot/app/aws"
 	"github.com/jaitl/goEnglishBot/app/phrase"
@@ -77,6 +78,7 @@ func main() {
 		&voice.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel, CommonSettings: commonSettings},
 		&me.Action{Bot: telegramBot},
 		&remove.Action{Bot: telegramBot, PhraseModel: phraseModel},
+		&training.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel},
 	}
 
 	actionExecutor := action.NewExecutor(actionSession, actions)
