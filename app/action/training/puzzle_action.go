@@ -16,6 +16,7 @@ type Action struct {
 	ActionSession *action.SessionModel
 	Bot           *telegram.Telegram
 	PhraseModel   *phrase.Model
+	Audio         *telegram.AudioService
 }
 
 const (
@@ -24,8 +25,6 @@ const (
 
 	Mode          action.SessionKey = "mode"
 	PuzzleSession action.SessionKey = "puzzleSession"
-
-	addedMsg string = "Добавлена фраза #%v \"%v\" с переводом \"%v\""
 )
 
 const (
@@ -87,12 +86,24 @@ func (a *Action) startStage(cmd command.Command) error {
 	puzzle := exercises.NewPuzzle(phrs.EnglishText)
 	puzzleRes := puzzle.Start()
 
+	var msg string
+
+	if mode == AudioMode {
+		msg = "Соберите фразу, которую вы слышите"
+
+		err := a.Audio.SendAudio(phrs)
+		if err != nil {
+			return err
+		}
+	} else {
+		msg = fmt.Sprintf("Соберите фразу: %s", phrs.RussianText)
+	}
+
 	keyboard := createKeyboard(puzzleRes.Variants)
-	msg := fmt.Sprintf("Соберите фразу: %s", phrs.RussianText)
 
 	err = a.Bot.SendWithKeyboard(cmd.GetUserId(), msg, keyboard)
 
-	ses := action.CreateSession(cmd.GetUserId(), action.Add, WaitPushButton)
+	ses := action.CreateSession(cmd.GetUserId(), action.Puzzle, WaitPushButton)
 	ses.AddData(Mode, mode)
 	ses.AddData(PuzzleSession, puzzle)
 	a.ActionSession.UpdateSession(ses)
@@ -101,7 +112,25 @@ func (a *Action) startStage(cmd command.Command) error {
 }
 
 func (a *Action) waitPushButton(cmd command.Command, session *action.Session) error {
-	return nil
+	callback, ok := cmd.(*command.KeyboardCallbackCommand)
+
+	if !ok {
+		return errors.New("command does not belong to WaitPushButton stage in PuzzleAction")
+	}
+
+	puzzle := session.Data[PuzzleSession].(*exercises.Puzzle)
+
+	puzzleRes := puzzle.HandleAnswer(callback.Data)
+
+	if puzzleRes.IsFinish {
+		a.ActionSession.ClearSession(cmd.GetUserId())
+		return a.Bot.Send(cmd.GetUserId(), fmt.Sprintf("Фраза: %s\nУпражнение успешно завершено", puzzleRes.AnsweredText))
+	}
+
+	msg := fmt.Sprintf("Фраза: %s", puzzleRes.AnsweredText)
+	keyboard := createKeyboard(puzzleRes.Variants)
+
+	return a.Bot.SendWithKeyboard(cmd.GetUserId(), msg, keyboard)
 }
 
 func createKeyboard(variants []string) map[telegram.ButtonValue]telegram.ButtonName {
