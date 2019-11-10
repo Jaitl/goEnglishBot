@@ -139,7 +139,9 @@ func (a *Action) waitWrittenText(cmd command.Command, session *action.Session) e
 
 	msg := fmt.Sprintf("Фраза: %s\nОсталось слов: %d", writeRes.AnsweredText, writeRes.WordsLeft)
 
-	if !writeRes.IsCorrectAnswer {
+	if writeRes.IsCorrectAnswer {
+		countErrors = 0
+	} else {
 		msg += "\nНекорректное слово!"
 		countErrors += 1
 	}
