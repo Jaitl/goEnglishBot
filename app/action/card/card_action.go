@@ -55,7 +55,7 @@ func (a *Action) startStage(cmd command.Command) error {
 		return err
 	}
 
-	err = a.Bot.SendMarkdown(audCmd.UserId, phrase.ToMarkdown(phrs))
+	err = a.Bot.SendMarkdown(audCmd.UserId, phrs.ToMarkdown())
 	if err != nil {
 		return err
 	}

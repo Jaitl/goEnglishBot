@@ -14,6 +14,8 @@ const (
 	Remove           Type = "remove"
 	PuzzleAudio      Type = "puzzleAudio"
 	PuzzleTrans      Type = "puzzleTrans"
+	WriteAudio       Type = "writeAudio"
+	WriteTrans       Type = "writeTrans"
 )
 
 type Command interface {

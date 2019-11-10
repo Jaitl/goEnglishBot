@@ -1,4 +1,4 @@
-package training
+package puzzle
 
 import (
 	"errors"
@@ -22,9 +22,11 @@ type Action struct {
 const (
 	Start          action.Stage = "start"          // Запускает puzzle тренировку
 	WaitPushButton action.Stage = "waitPushButton" // Ожидает, когда пользователь выберет фразу
+)
 
-	Mode          action.SessionKey = "mode"
-	PuzzleSession action.SessionKey = "puzzleSession"
+const (
+	Mode    action.SessionKey = "mode"
+	Session action.SessionKey = "puzzleSession"
 )
 
 const (
@@ -105,7 +107,7 @@ func (a *Action) startStage(cmd command.Command) error {
 
 	ses := action.CreateSession(cmd.GetUserId(), action.Puzzle, WaitPushButton)
 	ses.AddData(Mode, mode)
-	ses.AddData(PuzzleSession, puzzle)
+	ses.AddData(Session, puzzle)
 	a.ActionSession.UpdateSession(ses)
 
 	return err
@@ -118,13 +120,13 @@ func (a *Action) waitPushButton(cmd command.Command, session *action.Session) er
 		return errors.New("command does not belong to WaitPushButton stage in PuzzleAction")
 	}
 
-	puzzle := session.Data[PuzzleSession].(*exercises.Puzzle)
+	puzzle := session.Data[Session].(*exercises.Puzzle)
 
 	puzzleRes := puzzle.HandleAnswer(callback.Data)
 
 	if puzzleRes.IsFinish {
 		a.ActionSession.ClearSession(cmd.GetUserId())
-		return a.Bot.Send(cmd.GetUserId(), fmt.Sprintf("Фраза: %s\nУпражнение успешно завершено", puzzleRes.AnsweredText))
+		return a.Bot.Send(cmd.GetUserId(), fmt.Sprintf("Фраза: %s\nУпражнение успешно завершено!", puzzleRes.AnsweredText))
 	}
 
 	msg := fmt.Sprintf("Фраза: %s", puzzleRes.AnsweredText)

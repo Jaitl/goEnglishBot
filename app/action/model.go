@@ -22,4 +22,5 @@ const (
 	Me     Type = "me"
 	Remove Type = "remove"
 	Puzzle Type = "puzzle"
+	Write  Type = "write"
 )

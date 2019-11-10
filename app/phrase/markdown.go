@@ -1,7 +1,6 @@
 package phrase
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -15,19 +14,11 @@ func ToMarkdownTable(ph []Phrase) string {
 		return "Список фраз пуст"
 	}
 
-	rows := make([]string, len(ph))
+	rows := make([]string, 0, len(ph))
 
 	for _, p := range ph {
-		rows = append(rows, prepareTableRow(&p))
+		rows = append(rows, p.ToMarkdown())
 	}
 
 	return strings.Join(rows, "\n")
-}
-
-func ToMarkdown(p *Phrase) string {
-	return prepareTableRow(p)
-}
-
-func prepareTableRow(p *Phrase) string {
-	return fmt.Sprintf(rowPattern, p.IncNumber, p.EnglishText, p.RussianText)
 }

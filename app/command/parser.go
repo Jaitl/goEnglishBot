@@ -35,49 +35,49 @@ func parseTextCommand(userId int, cmd string) (Command, error) {
 		cmd := parts[0]
 
 		switch cmd {
+		case "/me":
+			return &MeCommand{userId}, nil
 		case "/add":
 			text := strings.Join(parts[1:], " ")
 			return &AddCommand{userId, text}, nil
 		case "/list", "/l":
 			return &ListCommand{userId}, nil
-		case "/voice", "/v":
-			if len(parts) != 2 {
-				return nil, errors.New("not enough arguments for the voice command")
-			}
-			incNumber, err := strconv.ParseInt(parts[1], 10, 64)
-			if err != nil {
-				return nil, err
-			}
-			return &VoiceCommand{userId, int(incNumber)}, nil
-		case "/puzzleAudio", "/pa":
-			if len(parts) != 2 {
-				return nil, errors.New("not enough arguments for the puzzleAudio command")
-			}
-			incNumber, err := strconv.ParseInt(parts[1], 10, 64)
-			if err != nil {
-				return nil, err
-			}
-			return &PuzzleAudioCommand{userId, int(incNumber)}, nil
-		case "/puzzleTrans", "/pt":
-			if len(parts) != 2 {
-				return nil, errors.New("not enough arguments for the puzzleTrans command")
-			}
-			incNumber, err := strconv.ParseInt(parts[1], 10, 64)
-			if err != nil {
-				return nil, err
-			}
-			return &PuzzleTransCommand{userId, int(incNumber)}, nil
 		case "/remove", "/r":
-			if len(parts) != 2 {
-				return nil, errors.New("not enough arguments for the remove command")
-			}
-			incNumber, err := strconv.ParseInt(parts[1], 10, 64)
+			incNumber, err := parseIncNumber(parts)
 			if err != nil {
 				return nil, err
 			}
-			return &RemoveCommand{userId, int(incNumber)}, nil
-		case "/me":
-			return &MeCommand{userId}, nil
+			return &RemoveCommand{userId, int(*incNumber)}, nil
+		case "/voice", "/v":
+			incNumber, err := parseIncNumber(parts)
+			if err != nil {
+				return nil, err
+			}
+			return &VoiceCommand{userId, int(*incNumber)}, nil
+		case "/puzzleAudio", "/pa":
+			incNumber, err := parseIncNumber(parts)
+			if err != nil {
+				return nil, err
+			}
+			return &PuzzleAudioCommand{userId, int(*incNumber)}, nil
+		case "/puzzleTrans", "/pt":
+			incNumber, err := parseIncNumber(parts)
+			if err != nil {
+				return nil, err
+			}
+			return &PuzzleTransCommand{userId, int(*incNumber)}, nil
+		case "/writeAudio", "/wa":
+			incNumber, err := parseIncNumber(parts)
+			if err != nil {
+				return nil, err
+			}
+			return &WriteAudioCommand{userId, int(*incNumber)}, nil
+		case "/writeTrans", "/wt":
+			incNumber, err := parseIncNumber(parts)
+			if err != nil {
+				return nil, err
+			}
+			return &WriteTransCommand{userId, int(*incNumber)}, nil
 		default:
 			return nil, fmt.Errorf("unknown command: %+v", cmd)
 		}
@@ -92,4 +92,16 @@ func parseNumberCommand(userId, incNumber int) (Command, error) {
 
 func parseVoiceCommand(userId int, voice *tgbotapi.Voice) (Command, error) {
 	return &ReceivedVoiceCommand{UserId: userId, FileID: voice.FileID}, nil
+}
+
+func parseIncNumber(parts []string) (*int64, error) {
+	if len(parts) != 2 {
+		return nil, errors.New("not enough arguments for the command")
+	}
+	incNumber, err := strconv.ParseInt(parts[1], 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	return &incNumber, nil
 }

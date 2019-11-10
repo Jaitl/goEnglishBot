@@ -6,12 +6,12 @@ import (
 )
 
 func TestNewPuzzle(t *testing.T) {
-	puzzle := NewPuzzle("She's hiding, because she's Embarrassed!!!")
+	puzzle := NewPuzzle("She's hiding, bec-ause she's Embarrassed!!!")
 
-	expText := []string{"she's", "hiding", "because", "she's", "embarrassed"}
+	expText := []string{"she's", "hiding", "bec-ause", "she's", "embarrassed"}
 	assert.Equal(t, expText, puzzle.text)
 
-	expVariants := []string{"she's", "hiding", "because", "embarrassed"}
+	expVariants := []string{"she's", "hiding", "bec-ause", "embarrassed"}
 
 	assert.Len(t, puzzle.variants, 4)
 	assert.ElementsMatch(t, puzzle.variants, expVariants)
