@@ -14,6 +14,15 @@ func TestNewWrite(t *testing.T) {
 	assert.Equal(t, 0, text.currentPosition)
 }
 
+func TestNewWrite2(t *testing.T) {
+	text := NewWrite("Get the fuck out of here")
+
+	expText := []string{"get", "the", "fuck", "out", "of", "here"}
+
+	assert.Equal(t, expText, text.text)
+	assert.Equal(t, 0, text.currentPosition)
+}
+
 func TestWriteHandleCorrectAnswer(t *testing.T) {
 	text := NewWrite("the decrease in general-purpose")
 	result := text.HandleAnswer([]string{"the"})
