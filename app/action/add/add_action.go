@@ -67,9 +67,9 @@ func (a *Action) startStage(cmd command.Command) error {
 
 	switch mcmd := cmd.(type) {
 	case *command.AddCommand:
-		text = mcmd.Text
+		text = phrase.Clear(mcmd.Text)
 	case *command.TextCommand:
-		text = mcmd.Text
+		text = phrase.Clear(mcmd.Text)
 	default:
 		return errors.New("command does not belong to Start stage in AddAction")
 	}

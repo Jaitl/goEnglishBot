@@ -1,8 +1,9 @@
 package command
 
 type PuzzleAudioCommand struct {
-	UserId    int
-	IncNumber int
+	UserId int
+	From   *int
+	To     *int
 }
 
 func (c *PuzzleAudioCommand) GetUserId() int {

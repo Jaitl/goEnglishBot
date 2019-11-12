@@ -10,13 +10,7 @@ type Puzzle struct {
 	text            []string
 	variants        []string
 	currentPosition int
-}
-
-type PuzzleResult struct {
-	IsCorrectAnswer bool
-	IsFinish        bool
-	Variants        []string
-	AnsweredText    string
+	isFinish        bool
 }
 
 func NewPuzzle(text string) *Puzzle {
@@ -33,34 +27,46 @@ func NewPuzzle(text string) *Puzzle {
 		text:            textParts,
 		variants:        variants,
 		currentPosition: 0,
+		isFinish:        false,
 	}
 }
 
-func (p *Puzzle) Start() *PuzzleResult {
-	return &PuzzleResult{
+func (p *Puzzle) Start() *ExResult {
+	return &ExResult{
 		IsCorrectAnswer: false,
-		IsFinish:        false,
+		IsFinish:        p.isFinish,
 		Variants:        p.variants,
 		AnsweredText:    "",
+		NextAnswer:      p.text[0],
+		WordsLeft:       len(p.text),
 	}
 }
 
-func (p *Puzzle) HandleAnswer(answer string) *PuzzleResult {
+func (p *Puzzle) HandleAnswer(answer string) *ExResult {
+	nextAnswer := ""
 	isCorrectAnswer := false
 
-	if p.currentPosition < len(p.text) {
+	if !p.isFinish {
 		isCorrectAnswer = strings.ToLower(p.text[p.currentPosition]) == answer
 
 		if isCorrectAnswer {
 			p.currentPosition += 1
 			p.variants = computeVariants(p.text[p.currentPosition:], p.variants)
 		}
+
+		if p.currentPosition >= len(p.text) {
+			p.isFinish = true
+		} else {
+			nextAnswer = p.text[p.currentPosition]
+		}
 	}
 
-	return &PuzzleResult{
+	return &ExResult{
 		IsCorrectAnswer: isCorrectAnswer,
-		IsFinish:        p.currentPosition >= len(p.text),
+		IsFinish:        p.isFinish,
 		Variants:        p.variants,
 		AnsweredText:    strings.Join(p.text[:p.currentPosition], " "),
+		NextAnswer:      nextAnswer,
+		WordsLeft:       len(p.text) - p.currentPosition,
 	}
 }

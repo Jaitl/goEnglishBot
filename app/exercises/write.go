@@ -7,14 +7,7 @@ import (
 type Write struct {
 	text            []string
 	currentPosition int
-}
-
-type WriteResult struct {
-	IsCorrectAnswer bool
-	IsFinish        bool
-	AnsweredText    string
-	NextAnswer      string
-	WordsLeft       int
+	isFinish        bool
 }
 
 func NewWrite(text string) *Write {
@@ -24,20 +17,21 @@ func NewWrite(text string) *Write {
 	return &Write{
 		text:            textParts,
 		currentPosition: 0,
+		isFinish:        false,
 	}
 }
 
-func (p *Write) Start() *WriteResult {
-	return &WriteResult{
+func (p *Write) Start() *ExResult {
+	return &ExResult{
 		IsCorrectAnswer: false,
-		IsFinish:        false,
+		IsFinish:        p.isFinish,
 		AnsweredText:    "",
-		NextAnswer:      p.text[p.currentPosition],
+		NextAnswer:      p.text[0],
 		WordsLeft:       len(p.text),
 	}
 }
 
-func (p *Write) HandleAnswer(answer []string) *WriteResult {
+func (p *Write) HandleAnswer(answer []string) *ExResult {
 	isCorrectAnswer := false
 	nextAnswer := ""
 
@@ -50,11 +44,13 @@ func (p *Write) HandleAnswer(answer []string) *WriteResult {
 		}
 	}
 
-	if p.currentPosition < len(p.text) {
+	if p.currentPosition >= len(p.text) {
+		p.isFinish = true
+	} else {
 		nextAnswer = p.text[p.currentPosition]
 	}
 
-	return &WriteResult{
+	return &ExResult{
 		IsCorrectAnswer: isCorrectAnswer,
 		IsFinish:        p.currentPosition >= len(p.text),
 		AnsweredText:    strings.Join(p.text[:p.currentPosition], " "),
