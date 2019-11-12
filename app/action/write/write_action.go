@@ -72,41 +72,34 @@ func (a *Action) Execute(stage action.Stage, cmd command.Command, session *actio
 
 func (a *Action) startStage(cmd command.Command) error {
 	var mode string
-	var incNumber int
+	var from, to *int
 
 	switch mcmd := cmd.(type) {
 	case *command.WriteAudioCommand:
 		mode = AudioMode
-		incNumber = mcmd.IncNumber
+		from = mcmd.From
+		to = mcmd.To
 	case *command.WriteTransCommand:
 		mode = TransMode
-		incNumber = mcmd.IncNumber
+		from = mcmd.From
+		to = mcmd.To
 	default:
 		return errors.New("command does not belong to Start stage in WriteAction")
 	}
 
-	phrs, err := a.PhraseModel.FindPhraseByIncNumber(cmd.GetUserId(), incNumber)
+	phrs, err := a.PhraseModel.SmartFindByRange(cmd.GetUserId(), from, to)
 
 	if err != nil {
 		return err
 	}
 
-	write := exercises.NewWrite(phrs.EnglishText)
-
-	var msg string
-
-	if mode == AudioMode {
-		msg = "Напишите фразу, которую вы слышите"
-
-		err := a.Audio.SendAudio(phrs)
-		if err != nil {
-			return err
-		}
-	} else {
-		msg = fmt.Sprintf("Напишите фразу: %s", phrs.RussianText)
+	if len(phrs) == 0 {
+		return errors.New("don't correct range")
 	}
 
-	err = a.Bot.Send(cmd.GetUserId(), msg)
+	write := exercises.NewComposite(phrs, exercises.WriteMode, true)
+
+	err = a.newWrite(write, mode)
 
 	ses := action.CreateSession(cmd.GetUserId(), action.Write, WaitWrittenText)
 	ses.AddData(Mode, mode)
@@ -124,22 +117,39 @@ func (a *Action) waitWrittenText(cmd command.Command, session *action.Session) e
 		return errors.New("command does not belong to WaitWrittenText stage in WriteAction")
 	}
 
-	write := session.Data[Session].(*exercises.Write)
+	write := session.Data[Session].(*exercises.Composite)
+	mode := session.GetStringData(Mode)
 
 	words := strings.Split(exercises.ClearText(text.Text), " ")
 
 	writeRes := write.HandleAnswer(words)
 
-	if writeRes.IsFinish {
+	msg := fmt.Sprintf("Фраза №%d из %d", writeRes.Pos+1, writeRes.CountPhrases)
+	msg += fmt.Sprintf("\nФраза: %s", writeRes.Result.AnsweredText)
+
+	if writeRes.Result.IsFinish && writeRes.IsFinish {
 		a.ActionSession.ClearSession(cmd.GetUserId())
-		return a.Bot.Send(cmd.GetUserId(), fmt.Sprintf("Фраза: %s\nУпражнение успешно завершено!", writeRes.AnsweredText))
+		msg += "\nФраза успешно завершена!"
+		msg += "\nУпражнение успешно завершено!"
+		return a.Bot.Send(cmd.GetUserId(), msg)
+	}
+
+	if writeRes.Result.IsFinish && !writeRes.IsFinish {
+		msg += "\nФраза успешно завершена!"
+		err := a.Bot.Send(cmd.GetUserId(), msg)
+
+		if err != nil {
+			return err
+		}
+
+		return a.newWrite(write, mode)
 	}
 
 	countErrors := session.GetIntData(CountErrors)
 
-	msg := fmt.Sprintf("Фраза: %s\nОсталось слов: %d", writeRes.AnsweredText, writeRes.WordsLeft)
+	msg += fmt.Sprintf("\nОсталось слов: %d", writeRes.Result.WordsLeft)
 
-	if writeRes.IsCorrectAnswer {
+	if writeRes.Result.IsCorrectAnswer {
 		countErrors = 0
 	} else {
 		msg += "\nНекорректное слово!"
@@ -147,7 +157,7 @@ func (a *Action) waitWrittenText(cmd command.Command, session *action.Session) e
 	}
 
 	if countErrors >= maxCountErrors {
-		msg += fmt.Sprintf("\nСледующее слово: %s", writeRes.NextAnswer)
+		msg += fmt.Sprintf("\nСледующее слово: %s", writeRes.Result.NextAnswer)
 		countErrors = 0
 	}
 
@@ -155,4 +165,23 @@ func (a *Action) waitWrittenText(cmd command.Command, session *action.Session) e
 	a.ActionSession.UpdateSession(session)
 
 	return a.Bot.Send(cmd.GetUserId(), msg)
+}
+
+func (a *Action) newWrite(puzzle *exercises.Composite, mode string) error {
+	puzzleRes := puzzle.Next()
+
+	msg := fmt.Sprintf("Фраза №%d из %d", puzzleRes.Pos+1, puzzleRes.CountPhrases)
+
+	if mode == AudioMode {
+		msg += "\nНапишите фразу, которую вы слышите"
+
+		err := a.Audio.SendAudio(puzzleRes.Phrase)
+		if err != nil {
+			return err
+		}
+	} else {
+		msg += fmt.Sprintf("\nНапишите фразу: %s", puzzleRes.Phrase.RussianText)
+	}
+
+	return a.Bot.Send(puzzleRes.Phrase.UserId, msg)
 }

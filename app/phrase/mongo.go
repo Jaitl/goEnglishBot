@@ -2,6 +2,7 @@ package phrase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -128,4 +129,43 @@ func (model *Model) RemovePhrase(userId, incNumber int) (int64, error) {
 	}
 
 	return delRes.DeletedCount, nil
+}
+
+func (model *Model) SmartFindByRange(userId int, from, to *int) ([]Phrase, error) {
+	var phrases []Phrase
+	var filter bson.M
+
+	if from == nil && to == nil {
+		filter = bson.M{"isMemorized": false, "userId": userId}
+	} else if from != nil && to != nil {
+		filter = bson.M{"isMemorized": false, "userId": userId, "incNumber": bson.M{"$gte": *from, "$lte": *to}}
+	} else if from != nil {
+		filter = bson.M{"isMemorized": false, "userId": userId, "incNumber": *from}
+	} else {
+		return nil, errors.New("params not correct")
+	}
+
+	cur, err := model.collection.Find(context.TODO(), filter)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer cur.Close(context.TODO())
+
+	for cur.Next(context.TODO()) {
+		var elem Phrase
+		err := cur.Decode(&elem)
+		if err != nil {
+			log.Printf("[ERROR] Fail to decode phrase: %v", err)
+		} else {
+			phrases = append(phrases, elem)
+		}
+	}
+
+	if err := cur.Err(); err != nil {
+		log.Printf("[ERROR] Fail during work with coursor: %v", err)
+	}
+
+	return phrases, nil
 }

@@ -47,37 +47,37 @@ func parseTextCommand(userId int, cmd string) (Command, error) {
 			if err != nil {
 				return nil, err
 			}
-			return &RemoveCommand{userId, int(*incNumber)}, nil
+			return &RemoveCommand{userId, *incNumber}, nil
 		case "/voice", "/v":
 			incNumber, err := parseIncNumber(parts)
 			if err != nil {
 				return nil, err
 			}
-			return &VoiceCommand{userId, int(*incNumber)}, nil
+			return &VoiceCommand{userId, *incNumber}, nil
 		case "/puzzleAudio", "/pa":
-			incNumber, err := parseIncNumber(parts)
+			from, to, err := parseIntRange(parts)
 			if err != nil {
 				return nil, err
 			}
-			return &PuzzleAudioCommand{userId, int(*incNumber)}, nil
+			return &PuzzleAudioCommand{UserId: userId, From: from, To: to}, nil
 		case "/puzzleTrans", "/pt":
-			incNumber, err := parseIncNumber(parts)
+			from, to, err := parseIntRange(parts)
 			if err != nil {
 				return nil, err
 			}
-			return &PuzzleTransCommand{userId, int(*incNumber)}, nil
+			return &PuzzleTransCommand{UserId: userId, From: from, To: to}, nil
 		case "/writeAudio", "/wa":
-			incNumber, err := parseIncNumber(parts)
+			from, to, err := parseIntRange(parts)
 			if err != nil {
 				return nil, err
 			}
-			return &WriteAudioCommand{userId, int(*incNumber)}, nil
+			return &WriteAudioCommand{UserId: userId, From: from, To: to}, nil
 		case "/writeTrans", "/wt":
-			incNumber, err := parseIncNumber(parts)
+			from, to, err := parseIntRange(parts)
 			if err != nil {
 				return nil, err
 			}
-			return &WriteTransCommand{userId, int(*incNumber)}, nil
+			return &WriteTransCommand{UserId: userId, From: from, To: to}, nil
 		default:
 			return nil, fmt.Errorf("unknown command: %+v", cmd)
 		}
@@ -94,14 +94,48 @@ func parseVoiceCommand(userId int, voice *tgbotapi.Voice) (Command, error) {
 	return &ReceivedVoiceCommand{UserId: userId, FileID: voice.FileID}, nil
 }
 
-func parseIncNumber(parts []string) (*int64, error) {
+func parseIncNumber(parts []string) (*int, error) {
 	if len(parts) != 2 {
 		return nil, errors.New("not enough arguments for the command")
 	}
-	incNumber, err := strconv.ParseInt(parts[1], 10, 64)
+	incNumber, err := strconv.Atoi(parts[1])
 	if err != nil {
 		return nil, err
 	}
 
 	return &incNumber, nil
+}
+
+func parseIntRange(parts []string) (*int, *int, error) {
+	var from, to *int = nil, nil
+
+	if len(parts) > 3 {
+		return nil, nil, errors.New("too many arguments for the command")
+	}
+
+	if len(parts) >= 2 {
+		numb, err := strconv.Atoi(parts[1])
+
+		if err != nil {
+			return nil, nil, err
+		}
+
+		from = &numb
+	}
+
+	if len(parts) == 3 {
+		numb, err := strconv.Atoi(parts[2])
+
+		if err != nil {
+			return nil, nil, err
+		}
+
+		to = &numb
+
+		if *from >= *to {
+			return nil, nil, errors.New("'from' cannot be more than 'to'")
+		}
+	}
+
+	return from, to, nil
 }

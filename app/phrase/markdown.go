@@ -4,21 +4,31 @@ import (
 	"strings"
 )
 
-const (
-	rowPattern = "#_%v_ \"*%v*\": _%v_"
-)
+func ToMarkdownTable(ph []Phrase, inMessage int) []string {
+	var rows [][]string
+	row := make([]string, 0, inMessage)
 
-func ToMarkdownTable(ph []Phrase) string {
-
-	if len(ph) == 0 {
-		return "Список фраз пуст"
-	}
-
-	rows := make([]string, 0, len(ph))
-
+	curCnt := 0
 	for _, p := range ph {
-		rows = append(rows, p.ToMarkdown())
+		curCnt += 1
+		row = append(row, p.ToMarkdown())
+		if curCnt >= inMessage {
+			curCnt = 0
+			rows = append(rows, row)
+			row = make([]string, 0, inMessage)
+		}
 	}
 
-	return strings.Join(rows, "\n")
+	if curCnt > 0 {
+		rows = append(rows, row)
+	}
+
+	messages := make([]string, 0, len(rows))
+
+	for _, r := range rows {
+		msg := strings.Join(r, "\n")
+		messages = append(messages, msg)
+	}
+
+	return messages
 }

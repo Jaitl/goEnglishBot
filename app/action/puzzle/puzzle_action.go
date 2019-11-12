@@ -66,44 +66,33 @@ func (a *Action) Execute(stage action.Stage, cmd command.Command, session *actio
 
 func (a *Action) startStage(cmd command.Command) error {
 	var mode string
-	var incNumber int
+	var from, to *int
 
 	switch mcmd := cmd.(type) {
 	case *command.PuzzleAudioCommand:
 		mode = AudioMode
-		incNumber = mcmd.IncNumber
+		from = mcmd.From
+		to = mcmd.To
 	case *command.PuzzleTransCommand:
 		mode = TransMode
-		incNumber = mcmd.IncNumber
+		from = mcmd.From
+		to = mcmd.To
 	default:
 		return errors.New("command does not belong to Start stage in PuzzleAction")
 	}
 
-	phrs, err := a.PhraseModel.FindPhraseByIncNumber(cmd.GetUserId(), incNumber)
+	phrs, err := a.PhraseModel.SmartFindByRange(cmd.GetUserId(), from, to)
 
 	if err != nil {
 		return err
 	}
 
-	puzzle := exercises.NewPuzzle(phrs.EnglishText)
-	puzzleRes := puzzle.Start()
-
-	var msg string
-
-	if mode == AudioMode {
-		msg = "Соберите фразу, которую вы слышите"
-
-		err := a.Audio.SendAudio(phrs)
-		if err != nil {
-			return err
-		}
-	} else {
-		msg = fmt.Sprintf("Соберите фразу: %s", phrs.RussianText)
+	if len(phrs) == 0 {
+		return errors.New("don't correct range")
 	}
 
-	keyboard := createKeyboard(puzzleRes.Variants)
-
-	err = a.Bot.SendWithKeyboard(cmd.GetUserId(), msg, keyboard)
+	puzzle := exercises.NewComposite(phrs, exercises.PuzzleMode, true)
+	err = a.newPhrase(puzzle, mode)
 
 	ses := action.CreateSession(cmd.GetUserId(), action.Puzzle, WaitPushButton)
 	ses.AddData(Mode, mode)
@@ -120,19 +109,55 @@ func (a *Action) waitPushButton(cmd command.Command, session *action.Session) er
 		return errors.New("command does not belong to WaitPushButton stage in PuzzleAction")
 	}
 
-	puzzle := session.Data[Session].(*exercises.Puzzle)
+	puzzle := session.Data[Session].(*exercises.Composite)
+	mode := session.GetStringData(Mode)
 
-	puzzleRes := puzzle.HandleAnswer(callback.Data)
+	puzzleRes := puzzle.HandleAnswer([]string{callback.Data})
 
-	if puzzleRes.IsFinish {
+	msg := fmt.Sprintf("Фраза №%d из %d", puzzleRes.Pos+1, puzzleRes.CountPhrases)
+	msg += fmt.Sprintf("\nФраза: %s", puzzleRes.Result.AnsweredText)
+
+	if puzzleRes.Result.IsFinish && puzzleRes.IsFinish {
 		a.ActionSession.ClearSession(cmd.GetUserId())
-		return a.Bot.Send(cmd.GetUserId(), fmt.Sprintf("Фраза: %s\nУпражнение успешно завершено!", puzzleRes.AnsweredText))
+		msg += "\nФраза успешно завершена!"
+		msg += "\nУпражнение успешно завершено!"
+		return a.Bot.Send(cmd.GetUserId(), msg)
 	}
 
-	msg := fmt.Sprintf("Фраза: %s", puzzleRes.AnsweredText)
-	keyboard := createKeyboard(puzzleRes.Variants)
+	if puzzleRes.Result.IsFinish && !puzzleRes.IsFinish {
+		msg += "\nФраза успешно завершена!"
+		err := a.Bot.Send(cmd.GetUserId(), msg)
 
+		if err != nil {
+			return err
+		}
+
+		return a.newPhrase(puzzle, mode)
+	}
+
+	keyboard := createKeyboard(puzzleRes.Result.Variants)
 	return a.Bot.SendWithKeyboard(cmd.GetUserId(), msg, keyboard)
+}
+
+func (a *Action) newPhrase(puzzle *exercises.Composite, mode string) error {
+	puzzleRes := puzzle.Next()
+
+	msg := fmt.Sprintf("Фраза №%d из %d", puzzleRes.Pos+1, puzzleRes.CountPhrases)
+
+	if mode == AudioMode {
+		msg += "\nСоберите фразу, которую вы слышите"
+
+		err := a.Audio.SendAudio(puzzleRes.Phrase)
+		if err != nil {
+			return err
+		}
+	} else {
+		msg += fmt.Sprintf("\nСоберите фразу: %s", puzzleRes.Phrase.RussianText)
+	}
+
+	keyboard := createKeyboard(puzzleRes.Result.Variants)
+
+	return a.Bot.SendWithKeyboard(puzzleRes.Phrase.UserId, msg, keyboard)
 }
 
 func createKeyboard(variants []string) map[telegram.ButtonValue]telegram.ButtonName {

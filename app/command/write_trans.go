@@ -2,7 +2,8 @@ package command
 
 type WriteTransCommand struct {
 	UserId    int
-	IncNumber int
+	From   *int
+	To     *int
 }
 
 func (c *WriteTransCommand) GetUserId() int {

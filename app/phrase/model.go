@@ -6,6 +6,10 @@ import (
 	"strconv"
 )
 
+const (
+	rowPattern = "#%v \"*%v*\": _%v_"
+)
+
 type Phrase struct {
 	Id          primitive.ObjectID `bson:"_id,omitempty"`
 	UserId      int                `bson:"userId"`

@@ -56,6 +56,7 @@ func TestHandleCorrectAnswer(t *testing.T) {
 	assert.ElementsMatch(t, result.Variants, []string{"123"})
 	assert.Equal(t, "she's hiding because she's embarrassed", result.AnsweredText)
 	assert.Equal(t, puzzle.currentPosition, 5)
+	assert.False(t, puzzle.isFinish)
 
 	result = puzzle.HandleAnswer("123")
 	assert.True(t, result.IsCorrectAnswer)
@@ -63,6 +64,7 @@ func TestHandleCorrectAnswer(t *testing.T) {
 	assert.ElementsMatch(t, result.Variants, []string{})
 	assert.Equal(t, "she's hiding because she's embarrassed 123", result.AnsweredText)
 	assert.Equal(t, puzzle.currentPosition, 6)
+	assert.True(t, puzzle.isFinish)
 }
 
 func TestHandleNotConnectAnswer(t *testing.T) {

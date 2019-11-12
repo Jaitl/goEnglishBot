@@ -1,6 +1,8 @@
 package command
 
 import (
+	"errors"
+	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
 )
@@ -21,8 +23,6 @@ func Test_parseTextCommand(t *testing.T) {
 		{"me", args{1, "/me"}, &MeCommand{1}},
 		{"remove", args{1, "/remove 10"}, &RemoveCommand{1, 10}},
 		{"voice", args{1, "/voice 10"}, &VoiceCommand{1, 10}},
-		{"puzzleAudio", args{1, "/puzzleAudio 10"}, &PuzzleAudioCommand{1, 10}},
-		{"puzzleTrans", args{1, "/puzzleTrans 10"}, &PuzzleTransCommand{1, 10}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -31,6 +31,26 @@ func Test_parseTextCommand(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestParseRangeCommands(t *testing.T) {
+	got, _ := parseTextCommand(1, "/puzzleAudio")
+	cmd := got.(*PuzzleAudioCommand)
+	assert.Nil(t, cmd.From)
+	assert.Nil(t, cmd.To)
+
+	got, _ = parseTextCommand(1, "/puzzleAudio 5")
+	cmd = got.(*PuzzleAudioCommand)
+	assert.Equal(t, 5, *cmd.From)
+	assert.Nil(t, nil, cmd.To)
+
+	got, _ = parseTextCommand(1, "/puzzleAudio 5 10")
+	cmd = got.(*PuzzleAudioCommand)
+	assert.Equal(t, 5, *cmd.From)
+	assert.Equal(t, 10, *cmd.To)
+
+	_, err := parseTextCommand(1, "/puzzleAudio 10 5")
+	assert.Equal(t, errors.New("'from' cannot be more than 'to'"), err)
 }
 
 func Test_parseNumberCommand(t *testing.T) {

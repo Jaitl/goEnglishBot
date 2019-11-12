@@ -17,6 +17,10 @@ const (
 	Start action.Stage = "start"
 )
 
+const (
+	phrasesInMessage int = 20
+)
+
 func (a *Action) GetType() action.Type {
 	return action.List
 }
@@ -50,9 +54,18 @@ func (a *Action) startStage(cmd command.Command) error {
 		return err
 	}
 
-	message := phrase.ToMarkdownTable(list)
+	if len(list) == 0 {
+		return a.Bot.SendMarkdown(cmd.GetUserId(), "Список фраз пуст")
+	}
 
-	err = a.Bot.SendMarkdown(cmd.GetUserId(), message)
+	messages := phrase.ToMarkdownTable(list, phrasesInMessage)
 
-	return err
+	for _, msg := range messages {
+		err = a.Bot.SendMarkdown(cmd.GetUserId(), msg)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

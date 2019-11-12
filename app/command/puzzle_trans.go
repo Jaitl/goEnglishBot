@@ -1,8 +1,9 @@
 package command
 
 type PuzzleTransCommand struct {
-	UserId    int
-	IncNumber int
+	UserId int
+	From   *int
+	To     *int
 }
 
 func (c *PuzzleTransCommand) GetUserId() int {
