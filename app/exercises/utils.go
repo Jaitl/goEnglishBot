@@ -1,7 +1,7 @@
 package exercises
 
 import (
-	"golang.org/x/text/unicode/norm"
+	"github.com/jaitl/goEnglishBot/app/phrase"
 	"regexp"
 	"strings"
 )
@@ -26,7 +26,7 @@ func computeVariants(text []string, curVariants []string) []string {
 }
 
 func ClearText(text string) string {
-	text = norm.NFKC.String(text)
+	text = phrase.Clear(text)
 	reg := regexp.MustCompile(`[^a-zA-Z1-9\s\\'\-]+`)
 
 	return reg.ReplaceAllString(strings.ToLower(text), "")
