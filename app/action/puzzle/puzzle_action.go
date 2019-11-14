@@ -25,8 +25,9 @@ const (
 )
 
 const (
-	Mode    action.SessionKey = "mode"
-	Session action.SessionKey = "puzzleSession"
+	Mode        action.SessionKey = "mode"
+	Session     action.SessionKey = "puzzleSession"
+	CountErrors action.SessionKey = "countErrors"
 )
 
 const (
@@ -97,6 +98,7 @@ func (a *Action) startStage(cmd command.Command) error {
 	ses := action.CreateSession(cmd.GetUserId(), action.Puzzle, WaitPushButton)
 	ses.AddData(Mode, mode)
 	ses.AddData(Session, puzzle)
+	ses.AddData(CountErrors, 0)
 	a.ActionSession.UpdateSession(ses)
 
 	return err
@@ -111,6 +113,7 @@ func (a *Action) waitPushButton(cmd command.Command, session *action.Session) er
 
 	puzzle := session.Data[Session].(*exercises.Composite)
 	mode := session.GetStringData(Mode)
+	countErrors := session.GetIntData(CountErrors)
 
 	puzzleRes := puzzle.HandleAnswer([]string{callback.Data})
 
@@ -119,21 +122,39 @@ func (a *Action) waitPushButton(cmd command.Command, session *action.Session) er
 
 	if puzzleRes.Result.IsFinish && puzzleRes.IsFinish {
 		a.ActionSession.ClearSession(cmd.GetUserId())
+		msg += fmt.Sprintf("\nПеревод: %s", puzzleRes.Phrase.RussianText)
 		msg += "\nФраза успешно завершена!"
+		msg += fmt.Sprintf("\nКоличество ошибок: %d", countErrors)
 		msg += "\nУпражнение успешно завершено!"
 		return a.Bot.Send(cmd.GetUserId(), msg)
 	}
 
 	if puzzleRes.Result.IsFinish && !puzzleRes.IsFinish {
+		msg += fmt.Sprintf("\nПеревод: %s", puzzleRes.Phrase.RussianText)
 		msg += "\nФраза успешно завершена!"
+		msg += fmt.Sprintf("\nКоличество ошибок: %d", countErrors)
 		err := a.Bot.Send(cmd.GetUserId(), msg)
 
 		if err != nil {
 			return err
 		}
 
+		session.AddData(CountErrors, 0)
+		a.ActionSession.UpdateSession(session)
+
 		return a.newPhrase(puzzle, mode)
 	}
+
+	if !puzzleRes.Result.IsCorrectAnswer {
+		countErrors += 1
+	}
+
+	if mode == TransMode {
+		msg += fmt.Sprintf("\nПеревод: %s", puzzleRes.Phrase.RussianText)
+	}
+
+	session.AddData(CountErrors, countErrors)
+	a.ActionSession.UpdateSession(session)
 
 	keyboard := createKeyboard(puzzleRes.Result.Variants)
 	return a.Bot.SendWithKeyboard(cmd.GetUserId(), msg, keyboard)

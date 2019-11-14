@@ -26,9 +26,10 @@ const (
 )
 
 const (
-	Mode        action.SessionKey = "mode"
-	Session     action.SessionKey = "writeSession"
-	CountErrors action.SessionKey = "countErrors"
+	Mode         action.SessionKey = "mode"
+	Session      action.SessionKey = "writeSession"
+	ErrorsToHelp action.SessionKey = "errorsToHelp"
+	CountErrors  action.SessionKey = "countErrors"
 )
 
 const (
@@ -104,6 +105,7 @@ func (a *Action) startStage(cmd command.Command) error {
 	ses := action.CreateSession(cmd.GetUserId(), action.Write, WaitWrittenText)
 	ses.AddData(Mode, mode)
 	ses.AddData(Session, write)
+	ses.AddData(ErrorsToHelp, 0)
 	ses.AddData(CountErrors, 0)
 	a.ActionSession.UpdateSession(ses)
 
@@ -119,6 +121,7 @@ func (a *Action) waitWrittenText(cmd command.Command, session *action.Session) e
 
 	write := session.Data[Session].(*exercises.Composite)
 	mode := session.GetStringData(Mode)
+	countErrors := session.GetIntData(CountErrors)
 
 	words := strings.Split(exercises.ClearText(text.Text), " ")
 
@@ -129,38 +132,50 @@ func (a *Action) waitWrittenText(cmd command.Command, session *action.Session) e
 
 	if writeRes.Result.IsFinish && writeRes.IsFinish {
 		a.ActionSession.ClearSession(cmd.GetUserId())
+		msg += fmt.Sprintf("\nПеревод: %s", writeRes.Phrase.RussianText)
 		msg += "\nФраза успешно завершена!"
+		msg += fmt.Sprintf("\nКоличество ошибок: %d", countErrors)
 		msg += "\nУпражнение успешно завершено!"
 		return a.Bot.Send(cmd.GetUserId(), msg)
 	}
 
 	if writeRes.Result.IsFinish && !writeRes.IsFinish {
+		msg += fmt.Sprintf("\nПеревод: %s", writeRes.Phrase.RussianText)
 		msg += "\nФраза успешно завершена!"
+		msg += fmt.Sprintf("\nКоличество ошибок: %d", countErrors)
 		err := a.Bot.Send(cmd.GetUserId(), msg)
 
 		if err != nil {
 			return err
 		}
 
+		session.AddData(CountErrors, 0)
+		a.ActionSession.UpdateSession(session)
+
 		return a.newWrite(write, mode)
 	}
 
-	countErrors := session.GetIntData(CountErrors)
+	if mode == TransMode {
+		msg += fmt.Sprintf("\nПеревод: %s", writeRes.Phrase.RussianText)
+	}
+
+	errorsToHelp := session.GetIntData(ErrorsToHelp)
 
 	msg += fmt.Sprintf("\nОсталось слов: %d", writeRes.Result.WordsLeft)
 
 	if writeRes.Result.IsCorrectAnswer {
-		countErrors = 0
+		errorsToHelp = 0
 	} else {
 		msg += "\nНекорректное слово!"
+		errorsToHelp += 1
 		countErrors += 1
 	}
 
-	if countErrors >= maxCountErrors {
+	if errorsToHelp >= maxCountErrors {
 		msg += fmt.Sprintf("\nСледующее слово: %s", writeRes.Result.NextAnswer)
-		countErrors = 0
 	}
 
+	session.AddData(ErrorsToHelp, errorsToHelp)
 	session.AddData(CountErrors, countErrors)
 	a.ActionSession.UpdateSession(session)
 
