@@ -27,7 +27,7 @@ func computeVariants(text []string, curVariants []string) []string {
 
 func ClearText(text string) string {
 	text = phrase.Clear(text)
-	reg := regexp.MustCompile(`[^a-zA-Z1-9\s\\'\-]+`)
+	reg := regexp.MustCompile(`[^a-zA-Z0-9\s\\'\-]+`)
 
 	return reg.ReplaceAllString(strings.ToLower(text), "")
 }
