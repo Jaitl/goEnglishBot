@@ -24,8 +24,6 @@ const (
 
 	userPhrase   action.SessionKey = "userPhrase"
 	awsTranslate action.SessionKey = "awsTranslate"
-
-	addedMsg string = "Добавлена фраза #%v \"%v\" с переводом \"%v\""
 )
 
 func (a *Action) GetType() action.Type {
@@ -119,12 +117,12 @@ func (a *Action) waitConfirmStage(cmd command.Command, session *action.Session) 
 		if err != nil {
 			return err
 		}
-		err = a.PhraseModel.CreatePhrase(cmd.GetUserId(), incNumber, session.GetStringData(userPhrase), session.GetStringData(awsTranslate))
+		err, ph := a.PhraseModel.CreatePhrase(cmd.GetUserId(), incNumber, session.GetStringData(userPhrase), session.GetStringData(awsTranslate))
 		if err != nil {
 			return err
 		}
 
-		msg := fmt.Sprintf(addedMsg, incNumber, session.Data[userPhrase], session.Data[awsTranslate])
+		msg := fmt.Sprintf("Добавлена фраза: %s", ph.ToMarkdown())
 		err = a.Bot.Send(cmd.GetUserId(), msg)
 
 		return err
@@ -152,13 +150,13 @@ func (a *Action) waitCustomTranslateStage(cmd command.Command, session *action.S
 		return err
 	}
 
-	err = a.PhraseModel.CreatePhrase(cmd.GetUserId(), incNumber, session.GetStringData(userPhrase), translate.Text)
+	err, ph := a.PhraseModel.CreatePhrase(cmd.GetUserId(), incNumber, session.GetStringData(userPhrase), translate.Text)
 
 	if err != nil {
 		return err
 	}
 
-	msg := fmt.Sprintf(addedMsg, incNumber, session.Data[userPhrase], translate.Text)
+	msg := fmt.Sprintf("Добавлена фраза: %s", ph.ToMarkdown())
 	err = a.Bot.Send(cmd.GetUserId(), msg)
 
 	return err

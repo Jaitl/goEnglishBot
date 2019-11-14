@@ -37,16 +37,21 @@ func NewModel(client *mongo.Client, db string) (*Model, error) {
 	return &Model{collection: collection}, nil
 }
 
-func (model *Model) CreatePhrase(userId, incNumber int, textEnglish, textRussian string) error {
-	_, err := model.collection.InsertOne(context.TODO(), Phrase{
+func (model *Model) CreatePhrase(userId, incNumber int, textEnglish, textRussian string) (error, *Phrase) {
+	ph := Phrase{
 		UserId:      userId,
 		IncNumber:   incNumber,
 		EnglishText: textEnglish,
 		RussianText: textRussian,
 		IsMemorized: false,
 		AudioId:     "",
-	})
-	return err
+	}
+	_, err := model.collection.InsertOne(context.TODO(), ph)
+
+	if err != nil {
+		return err, nil
+	}
+	return nil, &ph
 }
 
 func (model *Model) AllPhrases(userId int) ([]Phrase, error) {
