@@ -55,7 +55,7 @@ func (a *Action) startStage(cmd command.Command) error {
 	}
 
 	if len(list) == 0 {
-		return a.Bot.SendMarkdown(cmd.GetUserId(), "Список фраз пуст")
+		return a.Bot.Send(cmd.GetUserId(), "Список фраз пуст")
 	}
 
 	messages := phrase.ToMarkdownTable(list, phrasesInMessage)

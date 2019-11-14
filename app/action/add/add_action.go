@@ -123,7 +123,7 @@ func (a *Action) waitConfirmStage(cmd command.Command, session *action.Session) 
 		}
 
 		msg := fmt.Sprintf("Добавлена фраза: %s", ph.ToMarkdown())
-		err = a.Bot.Send(cmd.GetUserId(), msg)
+		err = a.Bot.SendMarkdown(cmd.GetUserId(), msg)
 
 		return err
 
@@ -157,7 +157,7 @@ func (a *Action) waitCustomTranslateStage(cmd command.Command, session *action.S
 	}
 
 	msg := fmt.Sprintf("Добавлена фраза: %s", ph.ToMarkdown())
-	err = a.Bot.Send(cmd.GetUserId(), msg)
+	err = a.Bot.SendMarkdown(cmd.GetUserId(), msg)
 
 	return err
 }
