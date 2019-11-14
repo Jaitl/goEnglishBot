@@ -67,5 +67,5 @@ func (a *Action) startStage(cmd command.Command) error {
 		}
 	}
 
-	return nil
+	return a.Bot.Send(cmd.GetUserId(), fmt.Sprintf("Количество фраз: %d", len(list)))
 }

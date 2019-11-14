@@ -37,7 +37,7 @@ const (
 )
 
 const (
-	maxCountErrors int = 3
+	maxCountErrors int = 2
 )
 
 func (a *Action) GetType() action.Type {
