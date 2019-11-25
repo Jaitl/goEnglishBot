@@ -1,7 +1,6 @@
 package aws
 
 import (
-	"errors"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -14,7 +13,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 type Session struct {
@@ -120,108 +118,4 @@ func (s *Session) Speech(text, name string) (string, error) {
 	}
 
 	return mp3FilePath, nil
-}
-
-func (s *Session) S3UploadVoice(path, filename string) (string, error) {
-	file, err := os.Open(path)
-
-	if err != nil {
-		return "", err
-	}
-
-	defer file.Close()
-
-	result, err := s.s3Uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(s.commonSettings.S3BucketName),
-		Key:    aws.String(filepath.Join(s.commonSettings.S3VoicePath, filename)),
-		Body:   file,
-	})
-
-	if err != nil {
-		return "", err
-	}
-
-	return result.Location, nil
-}
-
-func (s *Session) S3DownloadFile(url, savePath string) error {
-	file, err := os.Create(savePath)
-
-	if err != nil {
-		return err
-	}
-
-	defer file.Close()
-
-	_, key := ParseUrl(url)
-	_, err = s.s3Downloader.Download(file,
-		&s3.GetObjectInput{
-			Bucket: &s.commonSettings.S3BucketName,
-			Key:    &key,
-		})
-
-	return err
-}
-
-func (s *Session) S3DeleteFile(url string) error {
-	_, key := ParseUrl(url)
-	input := &s3.DeleteObjectInput{Bucket: aws.String(s.commonSettings.S3BucketName), Key: &key}
-	_, err := s.svc.DeleteObject(input)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *Session) TranscribeVoice(s3Path, fileName string) (string, error) {
-	media := &transcribeservice.Media{
-		MediaFileUri: &s3Path,
-	}
-
-	code := "en-US"
-	format := "mp3"
-
-	input := &transcribeservice.StartTranscriptionJobInput{
-		LanguageCode:         &code,
-		Media:                media,
-		MediaFormat:          &format,
-		OutputBucketName:     &s.commonSettings.S3BucketName,
-		TranscriptionJobName: &fileName,
-	}
-
-	_, err := s.transcribe.StartTranscriptionJob(input)
-
-	if err != nil {
-		return "", err
-	}
-
-	inProgress := true
-	var jobRes *transcribeservice.GetTranscriptionJobOutput
-
-	pause, _ := time.ParseDuration("10s")
-
-	for inProgress {
-		input := &transcribeservice.GetTranscriptionJobInput{TranscriptionJobName: &fileName}
-		jobRes, err = s.transcribe.GetTranscriptionJob(input)
-
-		if err != nil {
-			return "", err
-		}
-
-		switch *jobRes.TranscriptionJob.TranscriptionJobStatus {
-		case transcribeservice.TranscriptionJobStatusInProgress:
-			inProgress = true
-			time.Sleep(pause)
-		case transcribeservice.TranscriptionJobStatusCompleted:
-			inProgress = false
-		case transcribeservice.TranscriptionJobStatusFailed:
-			inProgress = false
-		}
-	}
-
-	if *jobRes.TranscriptionJob.TranscriptionJobStatus == transcribeservice.TranscriptionJobStatusCompleted {
-		return *jobRes.TranscriptionJob.Transcript.TranscriptFileUri, nil
-	} else {
-		return "", errors.New(*jobRes.TranscriptionJob.FailureReason)
-	}
 }
