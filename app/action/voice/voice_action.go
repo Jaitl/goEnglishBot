@@ -13,10 +13,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 type Action struct {
-	AwsSession     *aws.Session
+	Speech         *aws.SpeechClient
 	ActionSession  *action.SessionModel
 	Bot            *telegram.Telegram
 	PhraseModel    *phrase.Model
@@ -25,12 +26,8 @@ type Action struct {
 
 const (
 	Start action.Stage = "start" // Получает id фразы
-	Voice action.Stage = "voice" // Получает произнесенную фразу
 
-	phraseId   action.SessionKey = "phraseId"
-	phraseText action.SessionKey = "phraseText"
-
-	voiceMsg string = "Отправьте голосовое сообщение с произношением фразы \"%v\""
+	rate int = 16000
 )
 
 func (a *Action) GetType() action.Type {
@@ -44,8 +41,6 @@ func (a *Action) GetStartStage() action.Stage {
 func (a *Action) GetWaitCommands(stage action.Stage) map[command.Type]bool {
 	switch stage {
 	case Start:
-		return map[command.Type]bool{command.Voice: true, command.ReceivedVoice: true}
-	case Voice:
 		return map[command.Type]bool{command.ReceivedVoice: true}
 	}
 
@@ -55,40 +50,15 @@ func (a *Action) GetWaitCommands(stage action.Stage) map[command.Type]bool {
 func (a *Action) Execute(stage action.Stage, cmd command.Command, session *action.Session) error {
 	switch stage {
 	case Start:
-		if _, ok := cmd.(*command.VoiceCommand); ok {
-			return a.startStage(cmd)
-		}
 		if _, ok := cmd.(*command.ReceivedVoiceCommand); ok {
-			return a.voiceStage(cmd, session)
+			return a.voiceStage(cmd)
 		}
-	case Voice:
-		return a.voiceStage(cmd, session)
 	}
 
 	return fmt.Errorf("stage %s not found in AddAction", stage)
 }
 
-func (a *Action) startStage(cmd command.Command) error {
-	voiceCmd := cmd.(*command.VoiceCommand)
-
-	phrs, err := a.PhraseModel.FindPhraseByIncNumber(voiceCmd.GetUserId(), voiceCmd.IncNumber)
-
-	if err != nil {
-		return err
-	}
-
-	ses := action.CreateSession(cmd.GetUserId(), action.Voice, Voice)
-	ses.AddData(phraseId, string(voiceCmd.IncNumber))
-	ses.AddData(phraseText, phrs.EnglishText)
-	a.ActionSession.UpdateSession(ses)
-
-	msg := fmt.Sprintf(voiceMsg, phrs.EnglishText)
-	err = a.Bot.Send(voiceCmd.GetUserId(), msg)
-
-	return err
-}
-
-func (a *Action) voiceStage(cmd command.Command, session *action.Session) error {
+func (a *Action) voiceStage(cmd command.Command) error {
 	voiceCmd := cmd.(*command.ReceivedVoiceCommand)
 
 	a.ActionSession.ClearSession(cmd.GetUserId())
@@ -116,70 +86,33 @@ func (a *Action) voiceStage(cmd command.Command, session *action.Session) error 
 
 	defer os.Remove(opusFilePath)
 
-	mp3FileTmpUuid, err := uuid.NewRandom()
+	pcmFileTmpUuid, err := uuid.NewRandom()
 
 	if err != nil {
 		return err
 	}
 
-	mp3FileTmpName := mp3FileTmpUuid.String() + ".mp3"
-	mp3FilePath := filepath.Join(a.CommonSettings.TmpFolder, mp3FileTmpName)
+	pcmFileTmpName := pcmFileTmpUuid.String() + ".pcm"
+	pcmFilePath := filepath.Join(a.CommonSettings.TmpFolder, pcmFileTmpName)
 
-	log.Println("[DEBUG] VOICE: Convert file to MP3")
-	err = utils.OpusToMp3(opusFilePath, mp3FilePath)
-
-	if err != nil {
-		return err
-	}
-
-	defer os.Remove(mp3FilePath)
-
-	log.Println("[DEBUG] VOICE: Upload file to S3")
-	s3Url, err := a.AwsSession.S3UploadVoice(mp3FilePath, mp3FileTmpName)
+	log.Println("[DEBUG] VOICE: Convert file to PCM")
+	err = utils.OpusToPcm(opusFilePath, pcmFilePath, strconv.Itoa(rate))
 
 	if err != nil {
 		return err
 	}
 
-	defer func() {
-		err := a.AwsSession.S3DeleteFile(s3Url)
-		if err != nil {
-			println(err.Error())
-		}
-	}()
+	defer os.Remove(pcmFilePath)
 
-	log.Println("[DEBUG] VOICE: Transcribe Voice file")
-	s3TranscribeUrl, err := a.AwsSession.TranscribeVoice(s3Url, mp3FileTmpName)
+	log.Println("[DEBUG] VOICE: Do request to recognize voice")
+
+	voiceTest, err := a.Speech.RecognizeFile(pcmFilePath, rate)
 
 	if err != nil {
 		return err
 	}
 
-	defer func() {
-		err := a.AwsSession.S3DeleteFile(s3TranscribeUrl)
-		if err != nil {
-			println(err.Error())
-		}
-	}()
-
-	transcribeFilePath := mp3FilePath + ".trans"
-
-	log.Println("[DEBUG] VOICE: Download file from S3")
-	err = a.AwsSession.S3DownloadFile(s3TranscribeUrl, transcribeFilePath)
-
-	if err != nil {
-		return err
-	}
-
-	defer os.Remove(transcribeFilePath)
-
-	voiceTest, err := aws.TranscribeFileParser(transcribeFilePath)
-
-	if err != nil {
-		return err
-	}
-
-	err = a.Bot.Send(voiceCmd.GetUserId(), "Вы сказали: "+voiceTest)
+	err = a.Bot.Send(voiceCmd.GetUserId(), "Вы сказали: "+*voiceTest)
 
 	return err
 }

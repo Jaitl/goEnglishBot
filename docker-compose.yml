@@ -14,6 +14,7 @@ services:
       - AWS_SECRET=qwewe
       - AWS_S3_BUCKET_NAME=test
       - AWS_S3_VOICE_PATH=voice
+      - SPEECH_SERVICE_URL=http://speech:8080
     logging:
       options:
         max-size: "10m"
@@ -28,3 +29,13 @@ services:
         max-size: "10m"
         max-file: "3"
     restart: always
+  speech:
+    image: docker.pkg.github.com/jaitl/aws-speech-to-text-online/aws-speech:v1.0.0
+    environment:
+      - AWS_ACCESS_KEY_ID=asd
+      - AWS_SECRET_ACCESS_KEY=kkey
+      - AWS_REGION=us-east-1
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"

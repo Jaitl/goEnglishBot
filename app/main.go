@@ -6,8 +6,8 @@ import (
 	"github.com/jaitl/goEnglishBot/app/action/card"
 	"github.com/jaitl/goEnglishBot/app/action/list"
 	"github.com/jaitl/goEnglishBot/app/action/me"
-	"github.com/jaitl/goEnglishBot/app/action/remove"
 	"github.com/jaitl/goEnglishBot/app/action/puzzle"
+	"github.com/jaitl/goEnglishBot/app/action/remove"
 	"github.com/jaitl/goEnglishBot/app/action/voice"
 	"github.com/jaitl/goEnglishBot/app/action/write"
 	"github.com/jaitl/goEnglishBot/app/aws"
@@ -21,15 +21,16 @@ import (
 )
 
 var opts struct {
-	TelegramToken   string `long:"token" env:"TOKEN" required:"true"`
-	UserId          int    `long:"user-id" env:"USER_ID" required:"true"`
-	MongoDbUrl      string `long:"mongo-db-url" env:"MONGO_DB_URL" required:"true"`
-	AWSKey          string `long:"aws-key" env:"AWS_KEY" required:"true"`
-	AWSSecret       string `long:"aws-secret" env:"AWS_SECRET" required:"true"`
-	AWSRegion       string `long:"aws-region" env:"AWS_REGION" required:"true"`
-	AWSS3BucketName string `long:"aws-s3-bucket-name" env:"AWS_S3_BUCKET_NAME" required:"true"`
-	AWSS3VoicePath  string `long:"aws-s3-voice-path" env:"AWS_S3_VOICE_PATH" required:"true"`
-	PathToTmpFolder string `long:"tmp-folder" env:"TMP_FOLDER" required:"true"`
+	TelegramToken    string `long:"token" env:"TOKEN" required:"true"`
+	UserId           int    `long:"user-id" env:"USER_ID" required:"true"`
+	MongoDbUrl       string `long:"mongo-db-url" env:"MONGO_DB_URL" required:"true"`
+	AWSKey           string `long:"aws-key" env:"AWS_KEY" required:"true"`
+	AWSSecret        string `long:"aws-secret" env:"AWS_SECRET" required:"true"`
+	AWSRegion        string `long:"aws-region" env:"AWS_REGION" required:"true"`
+	AWSS3BucketName  string `long:"aws-s3-bucket-name" env:"AWS_S3_BUCKET_NAME" required:"true"`
+	AWSS3VoicePath   string `long:"aws-s3-voice-path" env:"AWS_S3_VOICE_PATH" required:"true"`
+	PathToTmpFolder  string `long:"tmp-folder" env:"TMP_FOLDER" required:"true"`
+	SpeechServiceUrl string `long:"speech-service-url" env:"SPEECH_SERVICE_URL" required:"true"`
 }
 
 func main() {
@@ -66,6 +67,8 @@ func main() {
 		log.Panic(err)
 	}
 
+	speechClient := aws.NewSpeechClient(opts.SpeechServiceUrl)
+
 	telegramBot, err := telegram.New(opts.TelegramToken, opts.UserId)
 
 	if err != nil {
@@ -78,7 +81,7 @@ func main() {
 		&add.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel},
 		&list.Action{Bot: telegramBot, PhraseModel: phraseModel},
 		&card.Action{Bot: telegramBot, PhraseModel: phraseModel, AwsSession: awsSession, Audio: audioService},
-		&voice.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel, CommonSettings: commonSettings},
+		&voice.Action{Speech: speechClient, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel, CommonSettings: commonSettings},
 		&me.Action{Bot: telegramBot},
 		&remove.Action{Bot: telegramBot, PhraseModel: phraseModel},
 		&puzzle.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel, Audio: audioService},
