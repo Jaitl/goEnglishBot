@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	correctScore = 0.8
+	correctScore = 0.65
 )
 
 type Speech struct {
