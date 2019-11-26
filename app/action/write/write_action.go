@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jaitl/goEnglishBot/app/action"
+	"github.com/jaitl/goEnglishBot/app/category"
 	"github.com/jaitl/goEnglishBot/app/command"
 	"github.com/jaitl/goEnglishBot/app/exercises"
-	"github.com/jaitl/goEnglishBot/app/phrase"
 	"github.com/jaitl/goEnglishBot/app/telegram"
 	"github.com/jaitl/goEnglishBot/app/utils"
 	"time"
@@ -15,7 +15,7 @@ import (
 type Action struct {
 	ActionSession *action.SessionModel
 	Bot           *telegram.Telegram
-	PhraseModel   *phrase.Model
+	CategoryModel *category.Model
 	Audio         *telegram.AudioService
 }
 
@@ -88,7 +88,7 @@ func (a *Action) startStage(cmd command.Command) error {
 		return errors.New("command does not belong to Start stage in WriteAction")
 	}
 
-	phrs, err := a.PhraseModel.SmartFindByRange(cmd.GetUserId(), from, to)
+	phrs, err := a.CategoryModel.SmartFindByRange(cmd.GetUserId(), from, to)
 
 	if err != nil {
 		return err

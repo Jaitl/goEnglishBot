@@ -5,9 +5,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/polly"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/aws/aws-sdk-go/service/transcribeservice"
 	"github.com/aws/aws-sdk-go/service/translate"
 	"github.com/jaitl/goEnglishBot/app/settings"
 	"io"
@@ -19,10 +16,6 @@ type Session struct {
 	session        *session.Session
 	translate      *translate.Translate
 	polly          *polly.Polly
-	s3Uploader     *s3manager.Uploader
-	s3Downloader   *s3manager.Downloader
-	svc            *s3.S3
-	transcribe     *transcribeservice.TranscribeService
 	commonSettings *settings.CommonSettings
 }
 
@@ -47,19 +40,11 @@ func New(accessKey, secretKey string, commonSettings *settings.CommonSettings) (
 
 	trans := translate.New(sess)
 	pollySes := polly.New(sess)
-	transcribe := transcribeservice.New(sessWithRegion)
-	s3Uploader := s3manager.NewUploader(sessWithRegion)
-	s3Downloader := s3manager.NewDownloader(sessWithRegion)
-	svc := s3.New(sessWithRegion)
 
 	awsSess := Session{
 		session:        sessWithRegion,
 		translate:      trans,
 		polly:          pollySes,
-		s3Uploader:     s3Uploader,
-		s3Downloader:   s3Downloader,
-		svc:            svc,
-		transcribe:     transcribe,
 		commonSettings: commonSettings,
 	}
 

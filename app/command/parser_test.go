@@ -17,11 +17,10 @@ func Test_parseTextCommand(t *testing.T) {
 		args args
 		want Command
 	}{
-		{"add", args{1, "/add слово"}, &AddCommand{1, "слово"}},
 		{"text", args{1, "text"}, &TextCommand{1, "text"}},
-		{"list", args{1, "/list"}, &ListCommand{1}},
+		{"list", args{1, "/list"}, &ListPhrasesCommand{1, nil}},
 		{"me", args{1, "/me"}, &MeCommand{1}},
-		{"remove", args{1, "/remove 10"}, &RemoveCommand{1, 10}},
+		{"remove", args{1, "/remove 10"}, &RemovePhraseCommand{1, 10}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

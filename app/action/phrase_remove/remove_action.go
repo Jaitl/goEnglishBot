@@ -1,16 +1,16 @@
-package remove
+package phrase_remove
 
 import (
 	"fmt"
 	"github.com/jaitl/goEnglishBot/app/action"
+	"github.com/jaitl/goEnglishBot/app/category"
 	"github.com/jaitl/goEnglishBot/app/command"
-	"github.com/jaitl/goEnglishBot/app/phrase"
 	"github.com/jaitl/goEnglishBot/app/telegram"
 )
 
 type Action struct {
-	Bot         *telegram.Telegram
-	PhraseModel *phrase.Model
+	Bot           *telegram.Telegram
+	CategoryModel *category.Model
 }
 
 const (
@@ -18,7 +18,7 @@ const (
 )
 
 func (a *Action) GetType() action.Type {
-	return action.Remove
+	return action.PhraseRemove
 }
 
 func (a *Action) GetStartStage() action.Stage {
@@ -28,7 +28,7 @@ func (a *Action) GetStartStage() action.Stage {
 func (a *Action) GetWaitCommands(stage action.Stage) map[command.Type]bool {
 	switch stage {
 	case Start:
-		return map[command.Type]bool{command.Remove: true}
+		return map[command.Type]bool{command.RemovePhrase: true}
 	}
 
 	return nil
@@ -37,9 +37,9 @@ func (a *Action) GetWaitCommands(stage action.Stage) map[command.Type]bool {
 func (a *Action) Execute(stage action.Stage, cmd command.Command, session *action.Session) error {
 	switch stage {
 	case Start:
-		removeCmd := cmd.(*command.RemoveCommand)
+		removeCmd := cmd.(*command.RemovePhraseCommand)
 
-		delCount, err := a.PhraseModel.RemovePhrase(removeCmd.UserId, removeCmd.IncNumber)
+		delCount, err := a.CategoryModel.RemovePhrase(removeCmd.UserId, removeCmd.IncNumber)
 
 		if err != nil {
 			return err
@@ -52,5 +52,5 @@ func (a *Action) Execute(stage action.Stage, cmd command.Command, session *actio
 		return nil
 	}
 
-	return fmt.Errorf("stage %s not found in RemoveAction", stage)
+	return fmt.Errorf("stage %s not found in PhraseRemoveAction", stage)
 }

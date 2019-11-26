@@ -1,10 +1,11 @@
-package add
+package phrase_add
 
 import (
 	"errors"
 	"fmt"
 	"github.com/jaitl/goEnglishBot/app/action"
 	"github.com/jaitl/goEnglishBot/app/aws"
+	"github.com/jaitl/goEnglishBot/app/category"
 	"github.com/jaitl/goEnglishBot/app/command"
 	"github.com/jaitl/goEnglishBot/app/phrase"
 	"github.com/jaitl/goEnglishBot/app/telegram"
@@ -14,7 +15,7 @@ type Action struct {
 	AwsSession    *aws.Session
 	ActionSession *action.SessionModel
 	Bot           *telegram.Telegram
-	PhraseModel   *phrase.Model
+	CategoryModel *category.Model
 }
 
 const (
@@ -26,8 +27,12 @@ const (
 	awsTranslate action.SessionKey = "awsTranslate"
 )
 
+const (
+	addMessageTemplate = "Добавлена фраза: %s\nв каталог: %s"
+)
+
 func (a *Action) GetType() action.Type {
-	return action.Add
+	return action.PhraseAdd
 }
 
 func (a *Action) GetStartStage() action.Stage {
@@ -37,7 +42,7 @@ func (a *Action) GetStartStage() action.Stage {
 func (a *Action) GetWaitCommands(stage action.Stage) map[command.Type]bool {
 	switch stage {
 	case Start:
-		return map[command.Type]bool{command.Add: true, command.Text: true}
+		return map[command.Type]bool{command.Text: true}
 	case WaitConfirm:
 		return map[command.Type]bool{command.KeyboardCallback: true}
 	case WaitCustomTranslate:
@@ -57,19 +62,17 @@ func (a *Action) Execute(stage action.Stage, cmd command.Command, session *actio
 		return a.waitCustomTranslateStage(cmd, session)
 	}
 
-	return fmt.Errorf("stage %s not found in AddAction", stage)
+	return fmt.Errorf("stage %s not found in PhraseAddAction", stage)
 }
 
 func (a *Action) startStage(cmd command.Command) error {
 	var text string
 
 	switch mcmd := cmd.(type) {
-	case *command.AddCommand:
-		text = phrase.Clear(mcmd.Text)
 	case *command.TextCommand:
 		text = phrase.Clear(mcmd.Text)
 	default:
-		return errors.New("command does not belong to Start stage in AddAction")
+		return errors.New("command does not belong to Start stage in PhraseAddAction")
 	}
 
 	trans, err := a.AwsSession.Translate(text)
@@ -77,7 +80,7 @@ func (a *Action) startStage(cmd command.Command) error {
 		return err
 	}
 
-	ses := action.CreateSession(cmd.GetUserId(), action.Add, WaitConfirm)
+	ses := action.CreateSession(cmd.GetUserId(), action.PhraseAdd, WaitConfirm)
 
 	ses.AddData(userPhrase, text)
 	ses.AddData(awsTranslate, trans)
@@ -103,7 +106,7 @@ func (a *Action) waitConfirmStage(cmd command.Command, session *action.Session) 
 	confirm, ok := cmd.(*command.KeyboardCallbackCommand)
 
 	if !ok {
-		return errors.New("command does not belong to ConfirmStage stage in AddAction")
+		return errors.New("command does not belong to ConfirmStage stage in PhraseAddAction")
 	}
 
 	switch confirm.Data {
@@ -113,16 +116,16 @@ func (a *Action) waitConfirmStage(cmd command.Command, session *action.Session) 
 
 	case "save":
 		a.ActionSession.ClearSession(cmd.GetUserId())
-		incNumber, err := a.PhraseModel.NextIncNumber(confirm.UserId)
+		incNumber, err := a.CategoryModel.NextIncNumberPhrase(confirm.UserId)
 		if err != nil {
 			return err
 		}
-		err, ph := a.PhraseModel.CreatePhrase(cmd.GetUserId(), incNumber, session.GetStringData(userPhrase), session.GetStringData(awsTranslate))
+		ph, cat, err := a.CategoryModel.CreatePhrase(cmd.GetUserId(), incNumber, session.GetStringData(userPhrase), session.GetStringData(awsTranslate))
 		if err != nil {
 			return err
 		}
 
-		msg := fmt.Sprintf("Добавлена фраза: %s", ph.ToMarkdown())
+		msg := fmt.Sprintf(addMessageTemplate, ph.ToMarkdown(), cat.ToMarkdown())
 		err = a.Bot.SendMarkdown(cmd.GetUserId(), msg)
 
 		return err
@@ -140,23 +143,23 @@ func (a *Action) waitCustomTranslateStage(cmd command.Command, session *action.S
 	translate, ok := cmd.(*command.TextCommand)
 
 	if !ok {
-		return errors.New("command does not belong to WaitCustomTranslate stage in AddAction")
+		return errors.New("command does not belong to WaitCustomTranslate stage in PhraseAddAction")
 	}
 
 	a.ActionSession.ClearSession(cmd.GetUserId())
 
-	incNumber, err := a.PhraseModel.NextIncNumber(translate.UserId)
+	incNumber, err := a.CategoryModel.NextIncNumberPhrase(translate.UserId)
 	if err != nil {
 		return err
 	}
 
-	err, ph := a.PhraseModel.CreatePhrase(cmd.GetUserId(), incNumber, session.GetStringData(userPhrase), translate.Text)
+	ph, cat, err := a.CategoryModel.CreatePhrase(cmd.GetUserId(), incNumber, session.GetStringData(userPhrase), translate.Text)
 
 	if err != nil {
 		return err
 	}
 
-	msg := fmt.Sprintf("Добавлена фраза: %s", ph.ToMarkdown())
+	msg := fmt.Sprintf(addMessageTemplate, ph.ToMarkdown(), cat.ToMarkdown())
 	err = a.Bot.SendMarkdown(cmd.GetUserId(), msg)
 
 	return err
