@@ -8,6 +8,7 @@ import (
 	"github.com/jaitl/goEnglishBot/app/action/me"
 	"github.com/jaitl/goEnglishBot/app/action/puzzle"
 	"github.com/jaitl/goEnglishBot/app/action/remove"
+	"github.com/jaitl/goEnglishBot/app/action/speech"
 	"github.com/jaitl/goEnglishBot/app/action/voice"
 	"github.com/jaitl/goEnglishBot/app/action/write"
 	"github.com/jaitl/goEnglishBot/app/aws"
@@ -27,8 +28,6 @@ var opts struct {
 	AWSKey           string `long:"aws-key" env:"AWS_KEY" required:"true"`
 	AWSSecret        string `long:"aws-secret" env:"AWS_SECRET" required:"true"`
 	AWSRegion        string `long:"aws-region" env:"AWS_REGION" required:"true"`
-	AWSS3BucketName  string `long:"aws-s3-bucket-name" env:"AWS_S3_BUCKET_NAME" required:"true"`
-	AWSS3VoicePath   string `long:"aws-s3-voice-path" env:"AWS_S3_VOICE_PATH" required:"true"`
 	PathToTmpFolder  string `long:"tmp-folder" env:"TMP_FOLDER" required:"true"`
 	SpeechServiceUrl string `long:"speech-service-url" env:"SPEECH_SERVICE_URL" required:"true"`
 }
@@ -41,10 +40,8 @@ func main() {
 	}
 
 	commonSettings := &settings.CommonSettings{
-		TmpFolder:    opts.PathToTmpFolder,
-		AwsRegion:    opts.AWSRegion,
-		S3BucketName: opts.AWSS3BucketName,
-		S3VoicePath:  opts.AWSS3VoicePath,
+		TmpFolder: opts.PathToTmpFolder,
+		AwsRegion: opts.AWSRegion,
 	}
 
 	client, err := mongo.NewClient(options.Client().ApplyURI(opts.MongoDbUrl))
@@ -77,15 +74,18 @@ func main() {
 
 	audioService := telegram.NewAudioService(telegramBot, phraseModel, awsSession)
 
+	speechServie := telegram.NewSpeechService(telegramBot, speechClient, commonSettings)
+
 	actions := []action.Action{
 		&add.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel},
 		&list.Action{Bot: telegramBot, PhraseModel: phraseModel},
 		&card.Action{Bot: telegramBot, PhraseModel: phraseModel, AwsSession: awsSession, Audio: audioService},
-		&voice.Action{Speech: speechClient, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel, CommonSettings: commonSettings},
+		&voice.Action{Speech: speechServie, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel},
 		&me.Action{Bot: telegramBot},
 		&remove.Action{Bot: telegramBot, PhraseModel: phraseModel},
 		&puzzle.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel, Audio: audioService},
-		&write.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel, Audio: audioService},
+		&write.Action{ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel, Audio: audioService},
+		&speech.Action{ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel, Speech: speechServie, Audio: audioService},
 	}
 
 	actionExecutor := action.NewExecutor(actionSession, actions)

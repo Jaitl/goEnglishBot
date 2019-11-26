@@ -48,12 +48,12 @@ func parseTextCommand(userId int, cmd string) (Command, error) {
 				return nil, err
 			}
 			return &RemoveCommand{userId, *incNumber}, nil
-		case "/voice", "/v":
-			incNumber, err := parseIncNumber(parts)
+		case "/speech", "/sp":
+			from, to, err := parseIntRange(parts)
 			if err != nil {
 				return nil, err
 			}
-			return &VoiceCommand{userId, *incNumber}, nil
+			return &SpeechCommand{UserId: userId, From: from, To: to}, nil
 		case "/puzzleAudio", "/pa":
 			from, to, err := parseIntRange(parts)
 			if err != nil {

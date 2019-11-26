@@ -7,4 +7,5 @@ type ExResult struct {
 	AnsweredText    string
 	NextAnswer      string
 	WordsLeft       int
+	MatchScore      float32
 }
