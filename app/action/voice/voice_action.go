@@ -2,32 +2,21 @@ package voice
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"github.com/jaitl/goEnglishBot/app/action"
-	"github.com/jaitl/goEnglishBot/app/aws"
 	"github.com/jaitl/goEnglishBot/app/command"
 	"github.com/jaitl/goEnglishBot/app/phrase"
-	"github.com/jaitl/goEnglishBot/app/settings"
 	"github.com/jaitl/goEnglishBot/app/telegram"
-	"github.com/jaitl/goEnglishBot/app/utils"
-	"log"
-	"os"
-	"path/filepath"
-	"strconv"
 )
 
 type Action struct {
-	Speech         *aws.SpeechClient
-	ActionSession  *action.SessionModel
-	Bot            *telegram.Telegram
-	PhraseModel    *phrase.Model
-	CommonSettings *settings.CommonSettings
+	Speech        *telegram.SpeechService
+	ActionSession *action.SessionModel
+	Bot           *telegram.Telegram
+	PhraseModel   *phrase.Model
 }
 
 const (
 	Start action.Stage = "start" // Получает id фразы
-
-	rate int = 16000
 )
 
 func (a *Action) GetType() action.Type {
@@ -63,50 +52,7 @@ func (a *Action) voiceStage(cmd command.Command) error {
 
 	a.ActionSession.ClearSession(cmd.GetUserId())
 
-	fileUrl, err := a.Bot.GetFilePath(voiceCmd.FileID)
-
-	if err != nil {
-		return err
-	}
-
-	opusFileTmpUuid, err := uuid.NewRandom()
-	if err != nil {
-		return err
-	}
-
-	opusFileTmpName := opusFileTmpUuid.String() + ".opus"
-	opusFilePath := filepath.Join(a.CommonSettings.TmpFolder, opusFileTmpName)
-
-	log.Println("[DEBUG] VOICE: Download file from Telegram")
-	err = utils.DownloadFile(opusFilePath, fileUrl)
-
-	if err != nil {
-		return err
-	}
-
-	defer os.Remove(opusFilePath)
-
-	pcmFileTmpUuid, err := uuid.NewRandom()
-
-	if err != nil {
-		return err
-	}
-
-	pcmFileTmpName := pcmFileTmpUuid.String() + ".pcm"
-	pcmFilePath := filepath.Join(a.CommonSettings.TmpFolder, pcmFileTmpName)
-
-	log.Println("[DEBUG] VOICE: Convert file to PCM")
-	err = utils.OpusToPcm(opusFilePath, pcmFilePath, strconv.Itoa(rate))
-
-	if err != nil {
-		return err
-	}
-
-	defer os.Remove(pcmFilePath)
-
-	log.Println("[DEBUG] VOICE: Do request to recognize voice")
-
-	voiceTest, err := a.Speech.RecognizeFile(pcmFilePath, rate)
+	voiceTest, err := a.Speech.TranscribeVoice(voiceCmd.FileID)
 
 	if err != nil {
 		return err

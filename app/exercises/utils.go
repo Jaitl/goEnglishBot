@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+var spaceReg = regexp.MustCompile(`\s+`)
+var onlyLettersReg = regexp.MustCompile(`[^a-zA-Z0-9\s\\']+`)
+
 func computeVariants(text []string, curVariants []string) []string {
 	m := make(map[string]bool)
 	variants := make([]string, 0, len(text))
@@ -27,9 +30,11 @@ func computeVariants(text []string, curVariants []string) []string {
 
 func ClearText(text string) string {
 	text = phrase.Clear(text)
-	reg := regexp.MustCompile(`[^a-zA-Z0-9\s\\'\-]+`)
 
-	return reg.ReplaceAllString(strings.ToLower(text), "")
+	noDash := strings.ReplaceAll(text, "-", " ")
+	noDash = spaceReg.ReplaceAllString(noDash, " ")
+
+	return onlyLettersReg.ReplaceAllString(strings.ToLower(noDash), "")
 }
 
 func unique(input []string) []string {

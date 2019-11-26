@@ -2,7 +2,7 @@ version: '3'
 
 services:
   bot:
-    image: go-english-bot:latest
+    image: docker.pkg.github.com/jaitl/goenglishbot/go-english-bot:<version>
     depends_on:
       - 'mongodb'
     environment:

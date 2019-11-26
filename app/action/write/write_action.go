@@ -4,16 +4,15 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jaitl/goEnglishBot/app/action"
-	"github.com/jaitl/goEnglishBot/app/aws"
 	"github.com/jaitl/goEnglishBot/app/command"
 	"github.com/jaitl/goEnglishBot/app/exercises"
 	"github.com/jaitl/goEnglishBot/app/phrase"
 	"github.com/jaitl/goEnglishBot/app/telegram"
-	"strings"
+	"github.com/jaitl/goEnglishBot/app/utils"
+	"time"
 )
 
 type Action struct {
-	AwsSession    *aws.Session
 	ActionSession *action.SessionModel
 	Bot           *telegram.Telegram
 	PhraseModel   *phrase.Model
@@ -30,6 +29,7 @@ const (
 	Session      action.SessionKey = "writeSession"
 	ErrorsToHelp action.SessionKey = "errorsToHelp"
 	CountErrors  action.SessionKey = "countErrors"
+	StartTime    action.SessionKey = "startTime"
 )
 
 const (
@@ -107,6 +107,7 @@ func (a *Action) startStage(cmd command.Command) error {
 	ses.AddData(Session, write)
 	ses.AddData(ErrorsToHelp, 0)
 	ses.AddData(CountErrors, 0)
+	ses.AddData(StartTime, time.Now())
 	a.ActionSession.UpdateSession(ses)
 
 	return err
@@ -123,9 +124,7 @@ func (a *Action) waitWrittenText(cmd command.Command, session *action.Session) e
 	mode := session.GetStringData(Mode)
 	countErrors := session.GetIntData(CountErrors)
 
-	words := strings.Split(exercises.ClearText(text.Text), " ")
-
-	writeRes := write.HandleAnswer(words)
+	writeRes := write.HandleAnswer(exercises.ClearText(text.Text))
 
 	msg := fmt.Sprintf("Фраза №%d из %d", writeRes.Pos+1, writeRes.CountPhrases)
 	msg += fmt.Sprintf("\nФраза: %s", writeRes.Result.AnsweredText)
@@ -135,7 +134,12 @@ func (a *Action) waitWrittenText(cmd command.Command, session *action.Session) e
 		msg += fmt.Sprintf("\nПеревод: %s", writeRes.Phrase.RussianText)
 		msg += "\nФраза успешно завершена!"
 		msg += fmt.Sprintf("\nКоличество ошибок: %d", countErrors)
-		msg += "\nУпражнение успешно завершено!"
+
+		startTime := session.Data[StartTime].(time.Time)
+		elapsed := time.Since(startTime)
+
+		msg += fmt.Sprintf("\nУпражнение успешно завершено за: %s!", utils.DurationPretty(elapsed))
+
 		return a.Bot.Send(cmd.GetUserId(), msg)
 	}
 
@@ -149,6 +153,7 @@ func (a *Action) waitWrittenText(cmd command.Command, session *action.Session) e
 			return err
 		}
 
+		session.AddData(ErrorsToHelp, 0)
 		session.AddData(CountErrors, 0)
 		a.ActionSession.UpdateSession(session)
 

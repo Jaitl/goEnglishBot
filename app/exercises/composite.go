@@ -3,6 +3,7 @@ package exercises
 import (
 	"github.com/jaitl/goEnglishBot/app/phrase"
 	"math/rand"
+	"strings"
 	"time"
 )
 
@@ -11,6 +12,7 @@ type Mode string
 const (
 	PuzzleMode Mode = "puzzle"
 	WriteMode  Mode = "write"
+	SpeechMode Mode = "speech"
 )
 
 type Composite struct {
@@ -42,6 +44,8 @@ func NewComposite(phrases []phrase.Phrase, mode Mode, random bool) *Composite {
 		ex = NewPuzzle(phrases[0].EnglishText)
 	case WriteMode:
 		ex = NewWrite(phrases[0].EnglishText)
+	case SpeechMode:
+		ex = NewSpeech(phrases[0].EnglishText)
 	}
 	return &Composite{
 		mode:         mode,
@@ -70,6 +74,13 @@ func (c *Composite) Next() *CompositePuzzleResult {
 			c.curExercises = curEx
 		}
 		result = curEx.Start()
+	case SpeechMode:
+		curEx := c.curExercises.(*Speech)
+		if curEx.isFinish && !c.isFinish {
+			curEx = NewSpeech(c.phrases[c.curPos].EnglishText)
+			c.curExercises = curEx
+		}
+		result = curEx.Start()
 	}
 
 	return &CompositePuzzleResult{
@@ -81,15 +92,17 @@ func (c *Composite) Next() *CompositePuzzleResult {
 	}
 }
 
-func (c *Composite) HandleAnswer(answ []string) *CompositePuzzleResult {
+func (c *Composite) HandleAnswer(answ string) *CompositePuzzleResult {
 	var result *ExResult
 	pos := c.curPos
 
 	switch c.mode {
 	case PuzzleMode:
-		result = c.curExercises.(*Puzzle).HandleAnswer(answ[0])
+		result = c.curExercises.(*Puzzle).HandleAnswer(answ)
 	case WriteMode:
-		result = c.curExercises.(*Write).HandleAnswer(answ)
+		result = c.curExercises.(*Write).HandleAnswer(strings.Split(answ, " "))
+	case SpeechMode:
+		result = c.curExercises.(*Speech).HandleAnswer(answ)
 	}
 
 	if result.IsFinish {

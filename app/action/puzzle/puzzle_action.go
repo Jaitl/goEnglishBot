@@ -9,6 +9,8 @@ import (
 	"github.com/jaitl/goEnglishBot/app/exercises"
 	"github.com/jaitl/goEnglishBot/app/phrase"
 	"github.com/jaitl/goEnglishBot/app/telegram"
+	"github.com/jaitl/goEnglishBot/app/utils"
+	"time"
 )
 
 type Action struct {
@@ -25,9 +27,15 @@ const (
 )
 
 const (
-	Mode        action.SessionKey = "mode"
-	Session     action.SessionKey = "puzzleSession"
-	CountErrors action.SessionKey = "countErrors"
+	Mode         action.SessionKey = "mode"
+	Session      action.SessionKey = "puzzleSession"
+	ErrorsToHelp action.SessionKey = "errorsToHelp"
+	CountErrors  action.SessionKey = "countErrors"
+	StartTime    action.SessionKey = "startTime"
+)
+
+const (
+	maxCountErrors int = 3
 )
 
 const (
@@ -98,7 +106,9 @@ func (a *Action) startStage(cmd command.Command) error {
 	ses := action.CreateSession(cmd.GetUserId(), action.Puzzle, WaitPushButton)
 	ses.AddData(Mode, mode)
 	ses.AddData(Session, puzzle)
+	ses.AddData(ErrorsToHelp, 0)
 	ses.AddData(CountErrors, 0)
+	ses.AddData(StartTime, time.Now())
 	a.ActionSession.UpdateSession(ses)
 
 	return err
@@ -115,7 +125,7 @@ func (a *Action) waitPushButton(cmd command.Command, session *action.Session) er
 	mode := session.GetStringData(Mode)
 	countErrors := session.GetIntData(CountErrors)
 
-	puzzleRes := puzzle.HandleAnswer([]string{callback.Data})
+	puzzleRes := puzzle.HandleAnswer(callback.Data)
 
 	msg := fmt.Sprintf("Фраза №%d из %d", puzzleRes.Pos+1, puzzleRes.CountPhrases)
 	msg += fmt.Sprintf("\nФраза: %s", puzzleRes.Result.AnsweredText)
@@ -125,7 +135,12 @@ func (a *Action) waitPushButton(cmd command.Command, session *action.Session) er
 		msg += fmt.Sprintf("\nПеревод: %s", puzzleRes.Phrase.RussianText)
 		msg += "\nФраза успешно завершена!"
 		msg += fmt.Sprintf("\nКоличество ошибок: %d", countErrors)
-		msg += "\nУпражнение успешно завершено!"
+
+		startTime := session.Data[StartTime].(time.Time)
+		elapsed := time.Since(startTime)
+
+		msg += fmt.Sprintf("\nУпражнение успешно завершено за: %s!", utils.DurationPretty(elapsed))
+
 		return a.Bot.Send(cmd.GetUserId(), msg)
 	}
 
@@ -139,20 +154,32 @@ func (a *Action) waitPushButton(cmd command.Command, session *action.Session) er
 			return err
 		}
 
+		session.AddData(ErrorsToHelp, 0)
 		session.AddData(CountErrors, 0)
 		a.ActionSession.UpdateSession(session)
 
 		return a.newPhrase(puzzle, mode)
 	}
 
-	if !puzzleRes.Result.IsCorrectAnswer {
-		countErrors += 1
-	}
-
 	if mode == TransMode {
 		msg += fmt.Sprintf("\nПеревод: %s", puzzleRes.Phrase.RussianText)
 	}
 
+	errorsToHelp := session.GetIntData(ErrorsToHelp)
+
+	if puzzleRes.Result.IsCorrectAnswer {
+		errorsToHelp = 0
+	} else {
+		msg += "\nНекорректное слово!"
+		errorsToHelp += 1
+		countErrors += 1
+	}
+
+	if errorsToHelp >= maxCountErrors {
+		msg += fmt.Sprintf("\nСледующее слово: %s", puzzleRes.Result.NextAnswer)
+	}
+
+	session.AddData(ErrorsToHelp, errorsToHelp)
 	session.AddData(CountErrors, countErrors)
 	a.ActionSession.UpdateSession(session)
 

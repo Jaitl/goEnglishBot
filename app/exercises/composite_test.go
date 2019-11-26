@@ -22,12 +22,12 @@ func TestCompositePuzzle(t *testing.T) {
 	assert.Len(t, result.Result.Variants, 2)
 	assert.False(t, result.IsFinish)
 
-	result = composite.HandleAnswer([]string{"look"})
+	result = composite.HandleAnswer("look")
 	assert.False(t, result.IsFinish)
 	assert.True(t, result.Result.IsCorrectAnswer)
 	assert.Len(t, result.Result.Variants, 1)
 
-	result = composite.HandleAnswer([]string{"it"})
+	result = composite.HandleAnswer("it")
 	assert.False(t, result.IsFinish)
 	assert.True(t, result.Result.IsFinish)
 	assert.True(t, result.Result.IsCorrectAnswer)
@@ -39,12 +39,12 @@ func TestCompositePuzzle(t *testing.T) {
 	assert.False(t, result.IsFinish)
 	assert.Equal(t, 1, composite.curPos)
 
-	result = composite.HandleAnswer([]string{"i"})
+	result = composite.HandleAnswer("i")
 	assert.False(t, result.IsFinish)
 	assert.True(t, result.Result.IsCorrectAnswer)
 	assert.Len(t, result.Result.Variants, 1)
 
-	result = composite.HandleAnswer([]string{"get"})
+	result = composite.HandleAnswer("get")
 	assert.False(t, result.IsFinish)
 	assert.True(t, result.Result.IsFinish)
 	assert.True(t, result.Result.IsCorrectAnswer)
@@ -56,12 +56,12 @@ func TestCompositePuzzle(t *testing.T) {
 	assert.False(t, result.IsFinish)
 	assert.Equal(t, 2, composite.curPos)
 
-	result = composite.HandleAnswer([]string{"check"})
+	result = composite.HandleAnswer("check")
 	assert.False(t, result.IsFinish)
 	assert.True(t, result.Result.IsCorrectAnswer)
 	assert.Len(t, result.Result.Variants, 1)
 
-	result = composite.HandleAnswer([]string{"it"})
+	result = composite.HandleAnswer("it")
 	assert.True(t, result.IsFinish)
 	assert.True(t, result.Result.IsFinish)
 	assert.True(t, result.Result.IsCorrectAnswer)
@@ -91,7 +91,7 @@ func TestCompositeWrite(t *testing.T) {
 	assert.False(t, result.IsFinish)
 	assert.Equal(t, 0, composite.curPos)
 
-	result = composite.HandleAnswer([]string{"look", "it"})
+	result = composite.HandleAnswer("look it")
 	assert.False(t, result.IsFinish)
 	assert.True(t, result.Result.IsFinish)
 	assert.True(t, result.Result.IsCorrectAnswer)
@@ -101,7 +101,7 @@ func TestCompositeWrite(t *testing.T) {
 	assert.False(t, result.IsFinish)
 	assert.Equal(t, 1, composite.curPos)
 
-	result = composite.HandleAnswer([]string{"i", "get"})
+	result = composite.HandleAnswer("i get")
 	assert.False(t, result.IsFinish)
 	assert.True(t, result.Result.IsFinish)
 	assert.True(t, result.Result.IsCorrectAnswer)
@@ -111,7 +111,61 @@ func TestCompositeWrite(t *testing.T) {
 	assert.False(t, result.IsFinish)
 	assert.Equal(t, 2, composite.curPos)
 
-	result = composite.HandleAnswer([]string{"check", "it"})
+	result = composite.HandleAnswer("check it")
+	assert.True(t, result.IsFinish)
+	assert.True(t, result.Result.IsFinish)
+	assert.True(t, result.Result.IsCorrectAnswer)
+
+	// correct
+	result = composite.Next()
+	assert.True(t, result.IsFinish)
+	assert.True(t, result.Result.IsFinish)
+	assert.Equal(t, 2, composite.curPos)
+}
+
+func TestCompositeSpeech(t *testing.T) {
+	phrases := []phrase.Phrase{
+		{EnglishText: "look it"},
+		{EnglishText: "I get"},
+		{EnglishText: "Check - it"},
+	}
+
+	composite := NewComposite(phrases, SpeechMode, false)
+
+	assert.Len(t, composite.phrases, 3)
+	assert.Equal(t, 0, composite.curPos)
+
+	// 0
+	result := composite.Next()
+	assert.False(t, result.IsFinish)
+	assert.Equal(t, 0, composite.curPos)
+
+	result = composite.HandleAnswer("look it")
+	assert.False(t, result.IsFinish)
+	assert.True(t, result.Result.IsFinish)
+	assert.True(t, result.Result.IsCorrectAnswer)
+
+	// 1
+	result = composite.Next()
+	assert.False(t, result.IsFinish)
+	assert.Equal(t, 1, composite.curPos)
+
+	result = composite.HandleAnswer("i get")
+	assert.False(t, result.IsFinish)
+	assert.True(t, result.Result.IsFinish)
+	assert.True(t, result.Result.IsCorrectAnswer)
+
+	// 2
+	result = composite.Next()
+	assert.False(t, result.IsFinish)
+	assert.Equal(t, 2, composite.curPos)
+
+	result = composite.HandleAnswer("check")
+	assert.False(t, result.IsFinish)
+	assert.False(t, result.Result.IsFinish)
+	assert.False(t, result.Result.IsCorrectAnswer)
+
+	result = composite.HandleAnswer("check it")
 	assert.True(t, result.IsFinish)
 	assert.True(t, result.Result.IsFinish)
 	assert.True(t, result.Result.IsCorrectAnswer)

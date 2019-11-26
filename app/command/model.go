@@ -9,7 +9,7 @@ const (
 	KeyboardCallback Type = "keyboardCallback"
 	ReceivedVoice    Type = "receivedVoice"
 	Number           Type = "number"
-	Voice            Type = "voice"
+	Speech           Type = "speech"
 	Me               Type = "me"
 	Remove           Type = "remove"
 	PuzzleAudio      Type = "puzzleAudio"
