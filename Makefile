@@ -3,6 +3,7 @@
 build:
 	go mod download
 	go build -o main ./app
+	rm main
 
 docker:
 	docker build -t go-english-bot .

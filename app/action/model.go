@@ -15,13 +15,14 @@ type Type string
 type Stage string
 
 const (
-	Add    Type = "add"
-	List   Type = "list"
-	Card   Type = "card"
-	Voice  Type = "voice"
-	Me     Type = "me"
-	Remove Type = "remove"
-	Puzzle Type = "puzzle"
-	Write  Type = "write"
-	Speech Type = "speech"
+	PhraseAdd    Type = "phraseAdd"
+	PhrasesList  Type = "phrasesList"
+	PhraseRemove Type = "phraseRemove"
+	PhraseCard   Type = "phraseCard"
+	Category     Type = "category"
+	Voice        Type = "voice"
+	Me           Type = "me"
+	Puzzle       Type = "puzzle"
+	Write        Type = "write"
+	Speech       Type = "speech"
 )

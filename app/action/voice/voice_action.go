@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/jaitl/goEnglishBot/app/action"
 	"github.com/jaitl/goEnglishBot/app/command"
-	"github.com/jaitl/goEnglishBot/app/phrase"
 	"github.com/jaitl/goEnglishBot/app/telegram"
 )
 
@@ -12,7 +11,6 @@ type Action struct {
 	Speech        *telegram.SpeechService
 	ActionSession *action.SessionModel
 	Bot           *telegram.Telegram
-	PhraseModel   *phrase.Model
 }
 
 const (

@@ -2,21 +2,22 @@ package telegram
 
 import (
 	"github.com/jaitl/goEnglishBot/app/aws"
+	"github.com/jaitl/goEnglishBot/app/category"
 	"github.com/jaitl/goEnglishBot/app/phrase"
 	"log"
 	"os"
 )
 
 type AudioService struct {
-	Bot         *Telegram
-	PhraseModel *phrase.Model
-	AwsSession  *aws.Session
+	Bot           *Telegram
+	CategoryModel *category.Model
+	AwsSession    *aws.Session
 }
 
-func NewAudioService(bot *Telegram, phModel *phrase.Model, awsSess *aws.Session) *AudioService {
+func NewAudioService(bot *Telegram, catModel *category.Model, awsSess *aws.Session) *AudioService {
 	return &AudioService{
 		Bot:         bot,
-		PhraseModel: phModel,
+		CategoryModel: catModel,
 		AwsSession:  awsSess,
 	}
 }
@@ -50,7 +51,7 @@ func (a *AudioService) SendAudio(phrs *phrase.Phrase) error {
 	}
 
 	if audioId != "" {
-		err := a.PhraseModel.UpdateAudioId(phrs.Id, audioId)
+		err := a.CategoryModel.UpdatePhraseAudioId(phrs.UserId, phrs.IncNumber, audioId)
 
 		if err != nil {
 			return err

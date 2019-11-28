@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jaitl/goEnglishBot/app/action"
+	"github.com/jaitl/goEnglishBot/app/category"
 	"github.com/jaitl/goEnglishBot/app/command"
 	"github.com/jaitl/goEnglishBot/app/exercises"
-	"github.com/jaitl/goEnglishBot/app/phrase"
 	"github.com/jaitl/goEnglishBot/app/telegram"
 	"github.com/jaitl/goEnglishBot/app/utils"
 	"time"
@@ -26,7 +26,7 @@ const (
 type Action struct {
 	ActionSession *action.SessionModel
 	Bot           *telegram.Telegram
-	PhraseModel   *phrase.Model
+	CategoryModel *category.Model
 	Speech        *telegram.SpeechService
 	Audio         *telegram.AudioService
 }
@@ -64,7 +64,7 @@ func (a *Action) Execute(stage action.Stage, cmd command.Command, session *actio
 func (a *Action) startStage(cmd command.Command) error {
 	speechCmd := cmd.(*command.SpeechCommand)
 
-	phrs, err := a.PhraseModel.SmartFindByRange(cmd.GetUserId(), speechCmd.From, speechCmd.To)
+	phrs, err := a.CategoryModel.SmartFindByRange(cmd.GetUserId(), speechCmd.From, speechCmd.To)
 
 	if err != nil {
 		return err

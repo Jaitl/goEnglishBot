@@ -37,17 +37,38 @@ func parseTextCommand(userId int, cmd string) (Command, error) {
 		switch cmd {
 		case "/me":
 			return &MeCommand{userId}, nil
-		case "/add":
-			text := strings.Join(parts[1:], " ")
-			return &AddCommand{userId, text}, nil
 		case "/list", "/l":
-			return &ListCommand{userId}, nil
+			incNumber, err := parseOptionalIncNumber(parts)
+			if err != nil {
+				return nil, err
+			}
+			return &ListPhrasesCommand{UserId: userId, IncNumber: incNumber}, nil
 		case "/remove", "/r":
 			incNumber, err := parseIncNumber(parts)
 			if err != nil {
 				return nil, err
 			}
-			return &RemoveCommand{userId, *incNumber}, nil
+			return &RemovePhraseCommand{userId, *incNumber}, nil
+		case "/cat":
+			if len(parts) < 2 {
+				return nil, errors.New("name is empty")
+			}
+			name := strings.Join(parts[1:], " ")
+			return &AddCategoryCommand{userId, name}, nil
+		case "/cats", "/cl":
+			return &ListCategoriesCommand{userId}, nil
+		case "/set":
+			incNumber, err := parseIncNumber(parts)
+			if err != nil {
+				return nil, err
+			}
+			return &SetCategoriesCommand{UserId: userId, IncNumber: *incNumber}, nil
+		case "/catRm", "/catrm", "/crm":
+			incNumber, err := parseIncNumber(parts)
+			if err != nil {
+				return nil, err
+			}
+			return &RemoveCategoryCommand{UserId: userId, IncNumber: *incNumber}, nil
 		case "/speech", "/sp":
 			from, to, err := parseIntRange(parts)
 			if err != nil {
@@ -98,6 +119,23 @@ func parseIncNumber(parts []string) (*int, error) {
 	if len(parts) != 2 {
 		return nil, errors.New("not enough arguments for the command")
 	}
+	incNumber, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return nil, err
+	}
+
+	return &incNumber, nil
+}
+
+func parseOptionalIncNumber(parts []string) (*int, error) {
+	if len(parts) != 2 {
+		return nil, nil
+	}
+
+	if len(parts) > 2 {
+		return nil, errors.New("too many arguments for the command")
+	}
+
 	incNumber, err := strconv.Atoi(parts[1])
 	if err != nil {
 		return nil, err

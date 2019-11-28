@@ -2,22 +2,22 @@ package main
 
 import (
 	"github.com/jaitl/goEnglishBot/app/action"
-	"github.com/jaitl/goEnglishBot/app/action/add"
-	"github.com/jaitl/goEnglishBot/app/action/card"
-	"github.com/jaitl/goEnglishBot/app/action/list"
+	"github.com/jaitl/goEnglishBot/app/action/category_crud"
 	"github.com/jaitl/goEnglishBot/app/action/me"
+	"github.com/jaitl/goEnglishBot/app/action/phrase_add"
+	"github.com/jaitl/goEnglishBot/app/action/phrase_card"
+	"github.com/jaitl/goEnglishBot/app/action/phrase_list"
+	"github.com/jaitl/goEnglishBot/app/action/phrase_remove"
 	"github.com/jaitl/goEnglishBot/app/action/puzzle"
-	"github.com/jaitl/goEnglishBot/app/action/remove"
 	"github.com/jaitl/goEnglishBot/app/action/speech"
 	"github.com/jaitl/goEnglishBot/app/action/voice"
 	"github.com/jaitl/goEnglishBot/app/action/write"
 	"github.com/jaitl/goEnglishBot/app/aws"
-	"github.com/jaitl/goEnglishBot/app/phrase"
+	"github.com/jaitl/goEnglishBot/app/category"
 	"github.com/jaitl/goEnglishBot/app/settings"
 	"github.com/jaitl/goEnglishBot/app/telegram"
+	"github.com/jaitl/goEnglishBot/app/utils"
 	"github.com/jessevdk/go-flags"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 )
 
@@ -44,13 +44,13 @@ func main() {
 		AwsRegion: opts.AWSRegion,
 	}
 
-	client, err := mongo.NewClient(options.Client().ApplyURI(opts.MongoDbUrl))
+	client, err := utils.ConnectMongo(opts.MongoDbUrl)
 
 	if err != nil {
 		log.Panic(err)
 	}
 
-	phraseModel, err := phrase.NewModel(client, "goEnglishBot")
+	categoryModel, err := category.NewModel(client, "goEnglishBot")
 
 	if err != nil {
 		log.Panic(err)
@@ -72,20 +72,21 @@ func main() {
 		log.Panic(err)
 	}
 
-	audioService := telegram.NewAudioService(telegramBot, phraseModel, awsSession)
+	audioService := telegram.NewAudioService(telegramBot, categoryModel, awsSession)
 
-	speechServie := telegram.NewSpeechService(telegramBot, speechClient, commonSettings)
+	speechService := telegram.NewSpeechService(telegramBot, speechClient, commonSettings)
 
 	actions := []action.Action{
-		&add.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel},
-		&list.Action{Bot: telegramBot, PhraseModel: phraseModel},
-		&card.Action{Bot: telegramBot, PhraseModel: phraseModel, AwsSession: awsSession, Audio: audioService},
-		&voice.Action{Speech: speechServie, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel},
+		&phrase_add.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, CategoryModel: categoryModel},
+		&phrase_list.Action{Bot: telegramBot, CategoryModel: categoryModel},
+		&phrase_remove.Action{Bot: telegramBot, CategoryModel: categoryModel},
+		&phrase_card.Action{Bot: telegramBot, CategoryModel: categoryModel, AwsSession: awsSession, Audio: audioService},
+		&category_crud.Action{Bot: telegramBot, CategoryModel: categoryModel},
+		&voice.Action{Speech: speechService, ActionSession: actionSession, Bot: telegramBot},
 		&me.Action{Bot: telegramBot},
-		&remove.Action{Bot: telegramBot, PhraseModel: phraseModel},
-		&puzzle.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel, Audio: audioService},
-		&write.Action{ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel, Audio: audioService},
-		&speech.Action{ActionSession: actionSession, Bot: telegramBot, PhraseModel: phraseModel, Speech: speechServie, Audio: audioService},
+		&puzzle.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, CategoryModel: categoryModel, Audio: audioService},
+		&write.Action{ActionSession: actionSession, Bot: telegramBot, CategoryModel: categoryModel, Audio: audioService},
+		&speech.Action{ActionSession: actionSession, Bot: telegramBot, CategoryModel: categoryModel, Speech: speechService, Audio: audioService},
 	}
 
 	actionExecutor := action.NewExecutor(actionSession, actions)
