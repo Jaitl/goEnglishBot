@@ -11,8 +11,8 @@ func TestClear(t *testing.T) {
 		args args
 		want string
 	}{
-		{"he`s", args{"he`s"}, "he's"},
-		{"he‘s", args{"he‘s"}, "he's"},
+		{"he`s", args{"he`s "}, "he's"},
+		{"he‘s", args{" he‘s"}, "he's"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

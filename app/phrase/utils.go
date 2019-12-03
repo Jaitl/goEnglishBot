@@ -10,5 +10,5 @@ func Clear(text string) string {
 	str := strings.ReplaceAll(text, "‘", "'")
 	str = strings.ReplaceAll(str, "’", "'")
 	str = strings.ReplaceAll(str, "`", "'")
-	return str
+	return strings.TrimSpace(str)
 }
