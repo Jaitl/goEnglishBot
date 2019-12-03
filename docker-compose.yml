@@ -30,7 +30,7 @@ services:
         max-file: "3"
     restart: always
   speech:
-    image: docker.pkg.github.com/jaitl/aws-speech-to-text-online/aws-speech:v1.0.0
+    image: docker.pkg.github.com/jaitl/aws-speech-to-text-online/aws-speech:v1.0.2
     environment:
       - AWS_ACCESS_KEY_ID=asd
       - AWS_SECRET_ACCESS_KEY=kkey
