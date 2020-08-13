@@ -99,6 +99,8 @@ func parseTextCommand(userId int, cmd string) (Command, error) {
 				return nil, err
 			}
 			return &WriteTransCommand{UserId: userId, From: from, To: to}, nil
+		case "/skip", "/s":
+			return &SkipCommand{UserId: userId}, nil
 		default:
 			return nil, fmt.Errorf("unknown command: %+v", cmd)
 		}

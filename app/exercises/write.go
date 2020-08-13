@@ -31,7 +31,11 @@ func (p *Write) Start() *ExResult {
 	}
 }
 
-func (p *Write) HandleAnswer(answer []string) *ExResult {
+func (p *Write) IsFinish() bool {
+	return p.isFinish
+}
+
+func (p *Write) HandleAnswer(answer string) *ExResult {
 	isCorrectAnswer := false
 	nextAnswer := ""
 
@@ -59,10 +63,11 @@ func (p *Write) HandleAnswer(answer []string) *ExResult {
 	}
 }
 
-func (p *Write) checkAnswer(answer []string) (bool, int) {
+func (p *Write) checkAnswer(answer string) (bool, int) {
+	answ := strings.Split(answer, " ")
 	isCorrectAnswer := false
 	pos := p.currentPosition
-	for _, answ := range answer {
+	for _, answ := range answ {
 		if answ == p.text[pos] {
 			isCorrectAnswer = true
 			pos += 1

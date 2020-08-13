@@ -42,6 +42,10 @@ func (p *Puzzle) Start() *ExResult {
 	}
 }
 
+func (p *Puzzle) IsFinish() bool {
+	return p.isFinish
+}
+
 func (p *Puzzle) HandleAnswer(answer string) *ExResult {
 	nextAnswer := ""
 	isCorrectAnswer := false

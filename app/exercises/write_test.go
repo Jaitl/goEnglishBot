@@ -1,8 +1,9 @@
 package exercises
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewWrite(t *testing.T) {
@@ -25,7 +26,7 @@ func TestNewWrite2(t *testing.T) {
 
 func TestWriteHandleCorrectAnswer(t *testing.T) {
 	text := NewWrite("the decrease in general-purpose")
-	result := text.HandleAnswer([]string{"the"})
+	result := text.HandleAnswer("the")
 
 	assert.True(t, result.IsCorrectAnswer)
 	assert.False(t, result.IsFinish)
@@ -34,7 +35,7 @@ func TestWriteHandleCorrectAnswer(t *testing.T) {
 	assert.Equal(t, result.NextAnswer, "decrease")
 	assert.Equal(t, 4, result.WordsLeft)
 
-	result = text.HandleAnswer([]string{"decrease", "in"})
+	result = text.HandleAnswer("decrease in")
 
 	assert.True(t, result.IsCorrectAnswer)
 	assert.False(t, result.IsFinish)
@@ -43,7 +44,7 @@ func TestWriteHandleCorrectAnswer(t *testing.T) {
 	assert.Equal(t, "general", result.NextAnswer)
 	assert.Equal(t, 2, result.WordsLeft)
 
-	result = text.HandleAnswer([]string{"general", "purpose"})
+	result = text.HandleAnswer("general purpose")
 
 	assert.True(t, result.IsCorrectAnswer)
 	assert.True(t, result.IsFinish)
@@ -55,7 +56,7 @@ func TestWriteHandleCorrectAnswer(t *testing.T) {
 
 func TestWriteHandleNotConnectAnswer(t *testing.T) {
 	text := NewWrite("the decrease in general-purpose")
-	result := text.HandleAnswer([]string{"not"})
+	result := text.HandleAnswer("not")
 
 	assert.False(t, result.IsCorrectAnswer)
 	assert.False(t, result.IsFinish)
@@ -64,7 +65,7 @@ func TestWriteHandleNotConnectAnswer(t *testing.T) {
 	assert.Equal(t, result.NextAnswer, "the")
 	assert.Equal(t, 5, result.WordsLeft)
 
-	result = text.HandleAnswer([]string{"the", "decrease", "in"})
+	result = text.HandleAnswer("the decrease in")
 
 	assert.True(t, result.IsCorrectAnswer)
 	assert.False(t, result.IsFinish)
@@ -73,7 +74,7 @@ func TestWriteHandleNotConnectAnswer(t *testing.T) {
 	assert.Equal(t, result.NextAnswer, "general")
 	assert.Equal(t, 2, result.WordsLeft)
 
-	result = text.HandleAnswer([]string{"not"})
+	result = text.HandleAnswer("not")
 
 	assert.False(t, result.IsCorrectAnswer)
 	assert.False(t, result.IsFinish)
@@ -82,7 +83,7 @@ func TestWriteHandleNotConnectAnswer(t *testing.T) {
 	assert.Equal(t, result.NextAnswer, "general")
 	assert.Equal(t, 2, result.WordsLeft)
 
-	result = text.HandleAnswer([]string{"general", "purpose", "test", "not"})
+	result = text.HandleAnswer("general purpose test not")
 
 	assert.True(t, result.IsCorrectAnswer)
 	assert.True(t, result.IsFinish)
@@ -94,7 +95,7 @@ func TestWriteHandleNotConnectAnswer(t *testing.T) {
 
 func TestWriteHandlePositionBounds(t *testing.T) {
 	text := NewWrite("the decrease in")
-	result := text.HandleAnswer([]string{"the", "decrease", "in"})
+	result := text.HandleAnswer("the decrease in")
 
 	assert.True(t, result.IsCorrectAnswer)
 	assert.True(t, result.IsFinish)
@@ -103,7 +104,7 @@ func TestWriteHandlePositionBounds(t *testing.T) {
 	assert.Equal(t, "", result.NextAnswer)
 	assert.Equal(t, 0, result.WordsLeft)
 
-	result = text.HandleAnswer([]string{"test"})
+	result = text.HandleAnswer("test")
 
 	assert.False(t, result.IsCorrectAnswer)
 	assert.True(t, result.IsFinish)

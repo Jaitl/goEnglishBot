@@ -1,9 +1,10 @@
 package exercises
 
 import (
+	"testing"
+
 	"github.com/jaitl/goEnglishBot/app/phrase"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestCompositePuzzle(t *testing.T) {
@@ -175,4 +176,29 @@ func TestCompositeSpeech(t *testing.T) {
 	assert.True(t, result.IsFinish)
 	assert.True(t, result.Result.IsFinish)
 	assert.Equal(t, 2, composite.curPos)
+}
+
+func TestCompositeSkip(t *testing.T) {
+	phrases := []phrase.Phrase{
+		{EnglishText: "look it"},
+		{EnglishText: "I get"},
+		{EnglishText: "Check - it"},
+	}
+
+	composite := NewComposite(phrases, SpeechMode, false)
+
+	result := composite.Next()
+	assert.False(t, result.IsFinish)
+	assert.Equal(t, "look it", result.Phrase.EnglishText)
+
+	result = composite.Skip()
+	assert.False(t, result.IsFinish)
+	assert.Equal(t, "I get", result.Phrase.EnglishText)
+
+	result = composite.Skip()
+	assert.False(t, result.IsFinish)
+	assert.Equal(t, "Check - it", result.Phrase.EnglishText)
+
+	result = composite.Skip()
+	assert.True(t, result.IsFinish)
 }

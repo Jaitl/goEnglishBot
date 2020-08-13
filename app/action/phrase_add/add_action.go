@@ -55,7 +55,11 @@ func (a *Action) Execute(stage action.Stage, cmd command.Command, session *actio
 	case Start:
 		return a.startStage(cmd)
 	case WaitConfirm:
-		return a.waitConfirmStage(cmd, session)
+		if _, ok := cmd.(*command.TextCommand); ok {
+			return a.waitCustomTranslateStage(cmd, session)
+		} else {
+			return a.waitConfirmStage(cmd, session)
+		}
 	}
 
 	return fmt.Errorf("stage %s not found in PhraseAddAction", stage)
@@ -100,10 +104,6 @@ func (a *Action) startStage(cmd command.Command) error {
 }
 
 func (a *Action) waitConfirmStage(cmd command.Command, session *action.Session) error {
-	if _, ok := cmd.(*command.TextCommand); ok {
-		return a.waitCustomTranslateStage(cmd, session)
-	}
-
 	confirm, ok := cmd.(*command.KeyboardCallbackCommand)
 	if !ok {
 		return errors.New("command does not belong to ConfirmStage stage in PhraseAddAction")
