@@ -3,9 +3,10 @@ package command
 import (
 	"errors"
 	"fmt"
-	"github.com/go-telegram-bot-api/telegram-bot-api"
 	"strconv"
 	"strings"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
 func Parse(update tgbotapi.Update) (Command, error) {
@@ -99,6 +100,8 @@ func parseTextCommand(userId int, cmd string) (Command, error) {
 				return nil, err
 			}
 			return &WriteTransCommand{UserId: userId, From: from, To: to}, nil
+		case "/skip", "/sk":
+			return &SkipCommand{UserId: userId}, nil
 		default:
 			return nil, fmt.Errorf("unknown command: %+v", cmd)
 		}

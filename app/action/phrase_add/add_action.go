@@ -3,6 +3,7 @@ package phrase_add
 import (
 	"errors"
 	"fmt"
+
 	"github.com/jaitl/goEnglishBot/app/action"
 	"github.com/jaitl/goEnglishBot/app/aws"
 	"github.com/jaitl/goEnglishBot/app/category"
@@ -19,9 +20,8 @@ type Action struct {
 }
 
 const (
-	Start               action.Stage = "start"               // Получает фразу на перевод
-	WaitConfirm         action.Stage = "waitConfirm"         // Ожидает подтверждение автоматического перевода
-	WaitCustomTranslate action.Stage = "waitCustomTranslate" // Ожидает когда пользователь пришлет свой перевод
+	Start       action.Stage = "start"       // Получает фразу на перевод
+	WaitConfirm action.Stage = "waitConfirm" // Ожидает подтверждение автоматического перевода
 
 	userPhrase   action.SessionKey = "userPhrase"
 	awsTranslate action.SessionKey = "awsTranslate"
@@ -44,9 +44,7 @@ func (a *Action) GetWaitCommands(stage action.Stage) map[command.Type]bool {
 	case Start:
 		return map[command.Type]bool{command.Text: true}
 	case WaitConfirm:
-		return map[command.Type]bool{command.KeyboardCallback: true}
-	case WaitCustomTranslate:
-		return map[command.Type]bool{command.Text: true}
+		return map[command.Type]bool{command.KeyboardCallback: true, command.Text: true}
 	}
 
 	return nil
@@ -57,9 +55,11 @@ func (a *Action) Execute(stage action.Stage, cmd command.Command, session *actio
 	case Start:
 		return a.startStage(cmd)
 	case WaitConfirm:
-		return a.waitConfirmStage(cmd, session)
-	case WaitCustomTranslate:
-		return a.waitCustomTranslateStage(cmd, session)
+		if _, ok := cmd.(*command.TextCommand); ok {
+			return a.waitCustomTranslateStage(cmd, session)
+		} else {
+			return a.waitConfirmStage(cmd, session)
+		}
 	}
 
 	return fmt.Errorf("stage %s not found in PhraseAddAction", stage)
@@ -80,6 +80,8 @@ func (a *Action) startStage(cmd command.Command) error {
 		return err
 	}
 
+	msg := fmt.Sprintf("Перевод фразы: \"%s\". Сохраните фразу или отправьте сообщение со своим переводом.", trans)
+
 	ses := action.CreateSession(cmd.GetUserId(), action.PhraseAdd, WaitConfirm)
 
 	ses.AddData(userPhrase, text)
@@ -89,11 +91,10 @@ func (a *Action) startStage(cmd command.Command) error {
 
 	keyboard := map[telegram.ButtonValue]telegram.ButtonName{
 		"save":   "Сохранить",
-		"custom": "Свой перевод",
 		"cancel": "Отменить",
 	}
 
-	err = a.Bot.SendWithKeyboard(cmd.GetUserId(), trans, keyboard)
+	err = a.Bot.SendWithKeyboard(cmd.GetUserId(), msg, keyboard)
 
 	if err != nil {
 		return err
@@ -104,7 +105,6 @@ func (a *Action) startStage(cmd command.Command) error {
 
 func (a *Action) waitConfirmStage(cmd command.Command, session *action.Session) error {
 	confirm, ok := cmd.(*command.KeyboardCallbackCommand)
-
 	if !ok {
 		return errors.New("command does not belong to ConfirmStage stage in PhraseAddAction")
 	}
@@ -129,11 +129,6 @@ func (a *Action) waitConfirmStage(cmd command.Command, session *action.Session) 
 		err = a.Bot.SendMarkdown(cmd.GetUserId(), msg)
 
 		return err
-
-	case "custom":
-		session.Stage = WaitCustomTranslate
-		a.ActionSession.UpdateSession(session)
-		return a.Bot.Send(cmd.GetUserId(), "Отправте свой перевод")
 	}
 
 	return nil

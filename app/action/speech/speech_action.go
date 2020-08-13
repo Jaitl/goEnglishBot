@@ -3,13 +3,14 @@ package speech
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/jaitl/goEnglishBot/app/action"
 	"github.com/jaitl/goEnglishBot/app/category"
 	"github.com/jaitl/goEnglishBot/app/command"
 	"github.com/jaitl/goEnglishBot/app/exercises"
 	"github.com/jaitl/goEnglishBot/app/telegram"
 	"github.com/jaitl/goEnglishBot/app/utils"
-	"time"
 )
 
 const (
@@ -44,7 +45,7 @@ func (a *Action) GetWaitCommands(stage action.Stage) map[command.Type]bool {
 	case Start:
 		return map[command.Type]bool{command.Speech: true}
 	case WaitVoice:
-		return map[command.Type]bool{command.ReceivedVoice: true}
+		return map[command.Type]bool{command.ReceivedVoice: true, command.Skip: true}
 	}
 
 	return nil
@@ -55,7 +56,11 @@ func (a *Action) Execute(stage action.Stage, cmd command.Command, session *actio
 	case Start:
 		return a.startStage(cmd)
 	case WaitVoice:
-		return a.waitVoice(cmd, session)
+		if cm, ok := cmd.(*command.SkipCommand); ok {
+			return a.skipPhrase(cm, session)
+		} else {
+			return a.waitVoice(cmd, session)
+		}
 	}
 
 	return fmt.Errorf("stage %s not found in SpeechAction", stage)
@@ -76,7 +81,7 @@ func (a *Action) startStage(cmd command.Command) error {
 
 	speech := exercises.NewComposite(phrs, exercises.SpeechMode, true)
 
-	err = a.newSpeech(speech)
+	err = a.newSpeech(speech, false)
 
 	ses := action.CreateSession(cmd.GetUserId(), action.Speech, WaitVoice)
 	ses.AddData(Session, speech)
@@ -139,7 +144,7 @@ func (a *Action) waitVoice(cmd command.Command, session *action.Session) error {
 		session.AddData(CountErrors, 0)
 		a.ActionSession.UpdateSession(session)
 
-		return a.newSpeech(speech)
+		return a.newSpeech(speech, false)
 	}
 
 	if !speechRes.Result.IsCorrectAnswer {
@@ -153,7 +158,26 @@ func (a *Action) waitVoice(cmd command.Command, session *action.Session) error {
 	return a.Bot.Send(cmd.GetUserId(), msg)
 }
 
-func (a *Action) newSpeech(speech *exercises.Composite) error {
+func (a *Action) skipPhrase(cmd *command.SkipCommand, session *action.Session) error {
+	session.AddData(CountErrors, 0)
+	a.ActionSession.UpdateSession(session)
+	speech := session.Data[Session].(*exercises.Composite)
+	speechRes := speech.Skip()
+
+	if speechRes.IsFinish {
+		a.ActionSession.ClearSession(cmd.GetUserId())
+		startTime := session.Data[StartTime].(time.Time)
+		elapsed := time.Since(startTime)
+
+		msg := fmt.Sprintf("Упражнение успешно завершено за: %s!", utils.DurationPretty(elapsed))
+
+		return a.Bot.Send(cmd.GetUserId(), msg)
+	}
+
+	return a.newSpeech(speech, true)
+}
+
+func (a *Action) newSpeech(speech *exercises.Composite, skip bool) error {
 	speechRes := speech.Next()
 
 	msg := fmt.Sprintf("Фраза №%d из %d", speechRes.Pos+1, speechRes.CountPhrases)

@@ -2,9 +2,10 @@ package command
 
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_parseTextCommand(t *testing.T) {
@@ -21,6 +22,7 @@ func Test_parseTextCommand(t *testing.T) {
 		{"list", args{1, "/list"}, &ListPhrasesCommand{1, nil}},
 		{"me", args{1, "/me"}, &MeCommand{1}},
 		{"remove", args{1, "/remove 10"}, &RemovePhraseCommand{1, 10}},
+		{"skip", args{1, "/skip"}, &SkipCommand{1}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

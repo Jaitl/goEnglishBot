@@ -30,6 +30,10 @@ func (p *Speech) Start() *ExResult {
 	}
 }
 
+func (p *Speech) IsFinish() bool {
+	return p.isFinish
+}
+
 func (p *Speech) HandleAnswer(answer string) *ExResult {
 	var score float32 = 0
 	isCorrectAnswer := false

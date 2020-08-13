@@ -1,24 +1,16 @@
 package exercises
 
 import (
-	"github.com/jaitl/goEnglishBot/app/phrase"
 	"math/rand"
-	"strings"
 	"time"
-)
 
-type Mode string
-
-const (
-	PuzzleMode Mode = "puzzle"
-	WriteMode  Mode = "write"
-	SpeechMode Mode = "speech"
+	"github.com/jaitl/goEnglishBot/app/phrase"
 )
 
 type Composite struct {
 	mode         Mode
 	phrases      []phrase.Phrase
-	curExercises interface{}
+	curExercises Exercise
 	curPos       int
 	isFinish     bool
 }
@@ -37,51 +29,43 @@ func NewComposite(phrases []phrase.Phrase, mode Mode, random bool) *Composite {
 		rand.Shuffle(len(phrases), func(i, j int) { phrases[i], phrases[j] = phrases[j], phrases[i] })
 	}
 
-	var ex interface{}
+	ex := NewExercise(mode, phrases[0].EnglishText)
 
-	switch mode {
-	case PuzzleMode:
-		ex = NewPuzzle(phrases[0].EnglishText)
-	case WriteMode:
-		ex = NewWrite(phrases[0].EnglishText)
-	case SpeechMode:
-		ex = NewSpeech(phrases[0].EnglishText)
-	}
 	return &Composite{
 		mode:         mode,
 		phrases:      phrases,
-		curExercises: ex,
+		curExercises: *ex,
 		curPos:       0,
 		isFinish:     false,
 	}
 }
 
 func (c *Composite) Next() *CompositePuzzleResult {
-	var result *ExResult
-
-	switch c.mode {
-	case PuzzleMode:
-		curEx := c.curExercises.(*Puzzle)
-		if curEx.isFinish && !c.isFinish {
-			curEx = NewPuzzle(c.phrases[c.curPos].EnglishText)
-			c.curExercises = curEx
-		}
-		result = curEx.Start()
-	case WriteMode:
-		curEx := c.curExercises.(*Write)
-		if curEx.isFinish && !c.isFinish {
-			curEx = NewWrite(c.phrases[c.curPos].EnglishText)
-			c.curExercises = curEx
-		}
-		result = curEx.Start()
-	case SpeechMode:
-		curEx := c.curExercises.(*Speech)
-		if curEx.isFinish && !c.isFinish {
-			curEx = NewSpeech(c.phrases[c.curPos].EnglishText)
-			c.curExercises = curEx
-		}
-		result = curEx.Start()
+	if c.curExercises.IsFinish() && !c.isFinish {
+		c.curExercises = *NewExercise(c.mode, c.phrases[c.curPos].EnglishText)
 	}
+
+	result := c.curExercises.Start()
+
+	return &CompositePuzzleResult{
+		IsFinish:     c.isFinish,
+		Result:       result,
+		Phrase:       &c.phrases[c.curPos],
+		Pos:          c.curPos,
+		CountPhrases: len(c.phrases),
+	}
+}
+
+func (c *Composite) Skip() *CompositePuzzleResult {
+	if !c.curExercises.IsFinish() {
+		c.nextPos()
+	}
+
+	if !c.isFinish {
+		c.curExercises = *NewExercise(c.mode, c.phrases[c.curPos].EnglishText)
+	}
+
+	result := c.curExercises.Start()
 
 	return &CompositePuzzleResult{
 		IsFinish:     c.isFinish,
@@ -93,24 +77,11 @@ func (c *Composite) Next() *CompositePuzzleResult {
 }
 
 func (c *Composite) HandleAnswer(answ string) *CompositePuzzleResult {
-	var result *ExResult
 	pos := c.curPos
-
-	switch c.mode {
-	case PuzzleMode:
-		result = c.curExercises.(*Puzzle).HandleAnswer(answ)
-	case WriteMode:
-		result = c.curExercises.(*Write).HandleAnswer(strings.Split(answ, " "))
-	case SpeechMode:
-		result = c.curExercises.(*Speech).HandleAnswer(answ)
-	}
+	result := c.curExercises.HandleAnswer(answ)
 
 	if result.IsFinish {
-		if c.curPos+1 >= len(c.phrases) {
-			c.isFinish = true
-		} else {
-			c.curPos += 1
-		}
+		c.nextPos()
 	}
 
 	return &CompositePuzzleResult{
@@ -119,5 +90,17 @@ func (c *Composite) HandleAnswer(answ string) *CompositePuzzleResult {
 		Phrase:       &c.phrases[pos],
 		Pos:          pos,
 		CountPhrases: len(c.phrases),
+	}
+}
+
+func (c *Composite) nextPos() {
+	if c.isFinish {
+		return
+	}
+
+	if c.curPos+1 >= len(c.phrases) {
+		c.isFinish = true
+	} else {
+		c.curPos += 1
 	}
 }
