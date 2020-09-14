@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/jaitl/goEnglishBot/app/action"
 	"github.com/jaitl/goEnglishBot/app/action/category_crud"
+	"github.com/jaitl/goEnglishBot/app/action/learn_cards"
 	"github.com/jaitl/goEnglishBot/app/action/me"
 	"github.com/jaitl/goEnglishBot/app/action/phrase_add"
 	"github.com/jaitl/goEnglishBot/app/action/phrase_card"
@@ -87,6 +88,7 @@ func main() {
 		&puzzle.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, CategoryModel: categoryModel, Audio: audioService},
 		&write.Action{ActionSession: actionSession, Bot: telegramBot, CategoryModel: categoryModel, Audio: audioService},
 		&speech.Action{ActionSession: actionSession, Bot: telegramBot, CategoryModel: categoryModel, Speech: speechService, Audio: audioService},
+		&learn_cards.Action{Bot: telegramBot, CategoryModel: categoryModel, AwsSession: awsSession, Audio: audioService},
 	}
 
 	actionExecutor := action.NewExecutor(actionSession, actions)
