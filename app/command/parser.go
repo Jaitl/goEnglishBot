@@ -100,6 +100,12 @@ func parseTextCommand(userId int, cmd string) (Command, error) {
 				return nil, err
 			}
 			return &WriteTransCommand{UserId: userId, From: from, To: to}, nil
+		case "/card":
+			from, to, err := parseIntRange(parts)
+			if err != nil {
+				return nil, err
+			}
+			return &CardCommand{UserId: userId, From: from, To: to}, nil
 		case "/skip", "/sk":
 			return &SkipCommand{UserId: userId}, nil
 		default:

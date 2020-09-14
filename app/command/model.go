@@ -22,6 +22,7 @@ const (
 	WriteAudio  Type = "writeAudio"
 	WriteTrans  Type = "writeTrans"
 	Speech      Type = "speech"
+	Card        Type = "card"
 	Skip        Type = "skip"
 	// system
 	Me Type = "me"
