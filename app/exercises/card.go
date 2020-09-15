@@ -62,3 +62,7 @@ func (c *Card) Next(know bool) *CardResult {
 		IsFinish: c.curCard == nil,
 	}
 }
+
+func (c *Card) CurCard() *CardPhrase {
+	return c.curCard
+}

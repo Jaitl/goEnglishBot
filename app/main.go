@@ -88,7 +88,7 @@ func main() {
 		&puzzle.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, CategoryModel: categoryModel, Audio: audioService},
 		&write.Action{ActionSession: actionSession, Bot: telegramBot, CategoryModel: categoryModel, Audio: audioService},
 		&speech.Action{ActionSession: actionSession, Bot: telegramBot, CategoryModel: categoryModel, Speech: speechService, Audio: audioService},
-		&learn_cards.Action{Bot: telegramBot, CategoryModel: categoryModel, AwsSession: awsSession, Audio: audioService},
+		&learn_cards.Action{Bot: telegramBot, CategoryModel: categoryModel, AwsSession: awsSession, Audio: audioService, ActionSession: actionSession},
 	}
 
 	actionExecutor := action.NewExecutor(actionSession, actions)
