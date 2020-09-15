@@ -25,4 +25,5 @@ const (
 	Puzzle       Type = "puzzle"
 	Write        Type = "write"
 	Speech       Type = "speech"
+	LearnCards   Type = "learnCards"
 )

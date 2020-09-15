@@ -149,7 +149,7 @@ func (a *Action) waitVoice(cmd command.Command, session *action.Session) error {
 
 	if !speechRes.Result.IsCorrectAnswer {
 		countErrors += 1
-		msg += fmt.Sprintf("\nПроизношение некорректно! Отправьте голосовое сообщение еще раз")
+		msg += "\nПроизношение некорректно! Отправьте голосовое сообщение еще раз"
 	}
 
 	session.AddData(CountErrors, countErrors)

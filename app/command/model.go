@@ -22,6 +22,7 @@ const (
 	WriteAudio  Type = "writeAudio"
 	WriteTrans  Type = "writeTrans"
 	Speech      Type = "speech"
+	LearnCards  Type = "learnCards"
 	Skip        Type = "skip"
 	// system
 	Me Type = "me"
