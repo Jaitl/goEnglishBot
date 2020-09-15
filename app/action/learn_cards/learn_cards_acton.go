@@ -22,9 +22,10 @@ type Action struct {
 }
 
 const (
-	Start             action.Stage = "start"
-	WaitKnowButton    action.Stage = "waitKnowButton"
-	WaitLearnedPhrase action.Stage = "waitLearnedPhrase"
+	Start                action.Stage = "start"
+	WaitKnowButton       action.Stage = "waitKnowButton"
+	WaitLearnedPhrase    action.Stage = "waitLearnedPhrase"
+	WaitCheckCorrectness action.Stage = "waitCheckCorrectness"
 )
 
 const (
@@ -35,6 +36,11 @@ const (
 const (
 	userKnowsAnswer       string = "know"
 	userDoesntKnowsAnswer string = "not_know"
+)
+
+const (
+	userApproveAnswer       string = "approve"
+	userDoesntApproveAnswer string = "doesnt_approve"
 )
 
 const (
@@ -57,6 +63,8 @@ func (a *Action) GetWaitCommands(stage action.Stage) map[command.Type]bool {
 		return map[command.Type]bool{command.KeyboardCallback: true}
 	case WaitLearnedPhrase:
 		return map[command.Type]bool{command.KeyboardCallback: true}
+	case WaitCheckCorrectness:
+		return map[command.Type]bool{command.KeyboardCallback: true}
 	}
 
 	return nil
@@ -67,9 +75,11 @@ func (a *Action) Execute(stage action.Stage, cmd command.Command, session *actio
 	case Start:
 		return a.startStage(cmd)
 	case WaitKnowButton:
-		return a.knowButtonAnswer(cmd, session)
+		return a.knowButtonAnswerStage(cmd, session)
 	case WaitLearnedPhrase:
-		return a.learnedAnswer(cmd, session)
+		return a.learnedAnswerStage(cmd, session)
+	case WaitCheckCorrectness:
+		return a.checkCorrectnessStage(cmd, session)
 	}
 
 	return fmt.Errorf("stage %s not found in LearnCardsAction", stage)
@@ -104,7 +114,7 @@ func (a *Action) startStage(cmd command.Command) error {
 	return nil
 }
 
-func (a *Action) knowButtonAnswer(cmd command.Command, session *action.Session) error {
+func (a *Action) knowButtonAnswerStage(cmd command.Command, session *action.Session) error {
 	callback, ok := cmd.(*command.KeyboardCallbackCommand)
 
 	if !ok {
@@ -115,13 +125,11 @@ func (a *Action) knowButtonAnswer(cmd command.Command, session *action.Session) 
 
 	switch callback.Data {
 	case userKnowsAnswer:
-		finish, err := a.nextCards(cmd.GetUserId(), card, true)
-		if err != nil {
-			return err
+		if err := a.checkCardCorrectness(cmd.GetUserId(), card); err != nil {
+			return nil
 		}
-		if finish {
-			return a.finish(cmd.GetUserId(), session)
-		}
+		session.Stage = WaitCheckCorrectness
+		a.ActionSession.UpdateSession(session)
 	case userDoesntKnowsAnswer:
 		if err := a.showCard(cmd.GetUserId(), card); err != nil {
 			return err
@@ -135,7 +143,7 @@ func (a *Action) knowButtonAnswer(cmd command.Command, session *action.Session) 
 	return nil
 }
 
-func (a *Action) learnedAnswer(cmd command.Command, session *action.Session) error {
+func (a *Action) learnedAnswerStage(cmd command.Command, session *action.Session) error {
 	session.Stage = WaitKnowButton
 	a.ActionSession.UpdateSession(session)
 
@@ -147,6 +155,38 @@ func (a *Action) learnedAnswer(cmd command.Command, session *action.Session) err
 	}
 	if finish {
 		return a.finish(cmd.GetUserId(), session)
+	}
+
+	return nil
+}
+
+func (a *Action) checkCorrectnessStage(cmd command.Command, session *action.Session) error {
+	callback, ok := cmd.(*command.KeyboardCallbackCommand)
+
+	if !ok {
+		return errors.New("command does not belong to WaitKnowButton stage in LearnCardsAction")
+	}
+
+	card := session.Data[Session].(*exercises.Card)
+
+
+	switch callback.Data {
+	case userApproveAnswer:
+		finish, err := a.nextCards(cmd.GetUserId(), card, true)
+		if err != nil {
+			return err
+		}
+		if finish {
+			return a.finish(cmd.GetUserId(), session)
+		}
+		session.Stage = WaitKnowButton
+		a.ActionSession.UpdateSession(session)
+	case userDoesntApproveAnswer:
+		if err := a.showCard(cmd.GetUserId(), card); err != nil {
+			return err
+		}
+		session.Stage = WaitLearnedPhrase
+		a.ActionSession.UpdateSession(session)
 	}
 
 	return nil
@@ -166,7 +206,7 @@ func (a *Action) nextCards(chatId int, c *exercises.Card, know bool) (bool, erro
 		return true, nil
 	}
 
-	msg := "Вы знаете перевод фразы "
+	msg := "Знаешь перевод фразы "
 
 	if cardRes.Card.IsEnglishText {
 		msg += fmt.Sprintf("\"%s\"?", cardRes.Card.Phrase.EnglishText)
@@ -198,4 +238,23 @@ func (a *Action) showCard(chatId int, c *exercises.Card) error {
 	buttons[telegram.ButtonValue(userLearnedPhrase)] = "Запомнил"
 
 	return a.Bot.SendWithKeyboard(chatId, "Запомнил?", buttons)
+}
+
+func (a *Action) checkCardCorrectness(chatId int, c *exercises.Card) error {
+	phr := c.CurCard().Phrase
+
+	msg := "Перевод: "
+	if c.CurCard().IsEnglishText {
+		msg += fmt.Sprintf("\"%s\".", phr.RussianText)
+	} else {
+		msg += fmt.Sprintf("\"%s\".", phr.EnglishText)
+	}
+
+	msg += "\nУверен что знаешь?"
+
+	buttons := make(map[telegram.ButtonValue]telegram.ButtonName)
+	buttons[telegram.ButtonValue(userApproveAnswer)] = "Да"
+	buttons[telegram.ButtonValue(userDoesntApproveAnswer)] = "Нет"
+
+	return a.Bot.SendWithKeyboard(chatId, msg, buttons)
 }
