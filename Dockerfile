@@ -1,4 +1,4 @@
-FROM golang:1.13 AS builder
+FROM golang:1.15 AS builder
 
 WORKDIR /app
 COPY go.mod go.sum ./
@@ -7,7 +7,7 @@ COPY . .
 
 RUN go build -o main ./app
 
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 RUN apt-get update && apt-get --no-install-recommends install -y ca-certificates ffmpeg
 
