@@ -7,13 +7,12 @@ services:
       - 'mongodb'
     environment:
       - TOKEN=abt
+      - USER_ID=123
       - MONGO_DB_URL=mongodb://mongodb:27017
       - TMP_FOLDER=/tmp_data
       - AWS_REGION=eu-west-2
       - AWS_KEY=asd
       - AWS_SECRET=qwewe
-      - AWS_S3_BUCKET_NAME=test
-      - AWS_S3_VOICE_PATH=voice
     logging:
       options:
         max-size: "10m"
