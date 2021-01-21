@@ -24,14 +24,13 @@ import (
 )
 
 var opts struct {
-	TelegramToken    string `long:"token" env:"TOKEN" required:"true"`
-	UserId           int    `long:"user-id" env:"USER_ID" required:"true"`
-	MongoDbUrl       string `long:"mongo-db-url" env:"MONGO_DB_URL" required:"true"`
-	AWSKey           string `long:"aws-key" env:"AWS_KEY" required:"true"`
-	AWSSecret        string `long:"aws-secret" env:"AWS_SECRET" required:"true"`
-	AWSRegion        string `long:"aws-region" env:"AWS_REGION" required:"true"`
-	PathToTmpFolder  string `long:"tmp-folder" env:"TMP_FOLDER" required:"true"`
-	SpeechServiceUrl string `long:"speech-service-url" env:"SPEECH_SERVICE_URL" required:"true"`
+	TelegramToken   string `long:"token" env:"TOKEN" required:"true"`
+	UserId          int    `long:"user-id" env:"USER_ID" required:"true"`
+	MongoDbUrl      string `long:"mongo-db-url" env:"MONGO_DB_URL" required:"true"`
+	AWSKey          string `long:"aws-key" env:"AWS_KEY" required:"true"`
+	AWSSecret       string `long:"aws-secret" env:"AWS_SECRET" required:"true"`
+	AWSRegion       string `long:"aws-region" env:"AWS_REGION" required:"true"`
+	PathToTmpFolder string `long:"tmp-folder" env:"TMP_FOLDER" required:"true"`
 }
 
 func main() {
