@@ -1,14 +1,15 @@
 package telegram
 
 import (
-	"github.com/google/uuid"
-	"github.com/jaitl/goEnglishBot/app/aws"
-	"github.com/jaitl/goEnglishBot/app/settings"
-	"github.com/jaitl/goEnglishBot/app/utils"
 	"log"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/google/uuid"
+	"github.com/jaitl/goEnglishBot/app/aws"
+	"github.com/jaitl/goEnglishBot/app/settings"
+	"github.com/jaitl/goEnglishBot/app/utils"
 )
 
 const (
@@ -17,14 +18,14 @@ const (
 
 type SpeechService struct {
 	bot            *Telegram
-	speech         *aws.SpeechClient
+	awsSession     *aws.Session
 	commonSettings *settings.CommonSettings
 }
 
-func NewSpeechService(bot *Telegram, speech *aws.SpeechClient, sett *settings.CommonSettings) *SpeechService {
+func NewSpeechService(bot *Telegram, awsSession *aws.Session, sett *settings.CommonSettings) *SpeechService {
 	return &SpeechService{
 		bot:            bot,
-		speech:         speech,
+		awsSession:     awsSession,
 		commonSettings: sett,
 	}
 }
@@ -73,5 +74,5 @@ func (a *SpeechService) TranscribeVoice(fileId string) (*string, error) {
 
 	log.Println("[DEBUG] [SpeechService]: Do request to recognize voice")
 
-	return a.speech.RecognizeFile(pcmFilePath, rate)
+	return a.awsSession.Transcribe(pcmFilePath, rate)
 }

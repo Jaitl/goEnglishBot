@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/jaitl/goEnglishBot/app/action"
 	"github.com/jaitl/goEnglishBot/app/action/category_crud"
 	"github.com/jaitl/goEnglishBot/app/action/learn_cards"
@@ -19,18 +21,16 @@ import (
 	"github.com/jaitl/goEnglishBot/app/telegram"
 	"github.com/jaitl/goEnglishBot/app/utils"
 	"github.com/jessevdk/go-flags"
-	"log"
 )
 
 var opts struct {
-	TelegramToken    string `long:"token" env:"TOKEN" required:"true"`
-	UserId           int    `long:"user-id" env:"USER_ID" required:"true"`
-	MongoDbUrl       string `long:"mongo-db-url" env:"MONGO_DB_URL" required:"true"`
-	AWSKey           string `long:"aws-key" env:"AWS_KEY" required:"true"`
-	AWSSecret        string `long:"aws-secret" env:"AWS_SECRET" required:"true"`
-	AWSRegion        string `long:"aws-region" env:"AWS_REGION" required:"true"`
-	PathToTmpFolder  string `long:"tmp-folder" env:"TMP_FOLDER" required:"true"`
-	SpeechServiceUrl string `long:"speech-service-url" env:"SPEECH_SERVICE_URL" required:"true"`
+	TelegramToken   string `long:"token" env:"TOKEN" required:"true"`
+	UserId          int    `long:"user-id" env:"USER_ID" required:"true"`
+	MongoDbUrl      string `long:"mongo-db-url" env:"MONGO_DB_URL" required:"true"`
+	AWSKey          string `long:"aws-key" env:"AWS_KEY" required:"true"`
+	AWSSecret       string `long:"aws-secret" env:"AWS_SECRET" required:"true"`
+	AWSRegion       string `long:"aws-region" env:"AWS_REGION" required:"true"`
+	PathToTmpFolder string `long:"tmp-folder" env:"TMP_FOLDER" required:"true"`
 }
 
 func main() {
@@ -65,8 +65,6 @@ func main() {
 		log.Panic(err)
 	}
 
-	speechClient := aws.NewSpeechClient(opts.SpeechServiceUrl)
-
 	telegramBot, err := telegram.New(opts.TelegramToken, opts.UserId)
 
 	if err != nil {
@@ -75,7 +73,7 @@ func main() {
 
 	audioService := telegram.NewAudioService(telegramBot, categoryModel, awsSession)
 
-	speechService := telegram.NewSpeechService(telegramBot, speechClient, commonSettings)
+	speechService := telegram.NewSpeechService(telegramBot, awsSession, commonSettings)
 
 	actions := []action.Action{
 		&phrase_add.Action{AwsSession: awsSession, ActionSession: actionSession, Bot: telegramBot, CategoryModel: categoryModel},
