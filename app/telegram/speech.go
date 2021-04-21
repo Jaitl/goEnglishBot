@@ -2,18 +2,10 @@ package telegram
 
 import (
 	"log"
-	"os"
-	"path/filepath"
-	"strconv"
+	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/jaitl/goEnglishBot/app/aws"
 	"github.com/jaitl/goEnglishBot/app/settings"
-	"github.com/jaitl/goEnglishBot/app/utils"
-)
-
-const (
-	rate int = 16000
 )
 
 type SpeechService struct {
@@ -31,48 +23,19 @@ func NewSpeechService(bot *Telegram, awsSession *aws.Session, sett *settings.Com
 }
 
 func (a *SpeechService) TranscribeVoice(fileId string) (*string, error) {
-	fileUrl, err := a.bot.GetFilePath(fileId)
-
+	file, err := a.bot.bot.GetFileDirectURL(fileId)
 	if err != nil {
 		return nil, err
 	}
 
-	opusFileTmpUuid, err := uuid.NewRandom()
+	resp, err := http.Get(file)
 	if err != nil {
 		return nil, err
 	}
 
-	opusFileTmpName := opusFileTmpUuid.String() + ".opus"
-	opusFilePath := filepath.Join(a.commonSettings.TmpFolder, opusFileTmpName)
-
-	log.Println("[DEBUG] [SpeechService]: Download file from Telegram")
-	err = utils.DownloadFile(opusFilePath, fileUrl)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer os.Remove(opusFilePath)
-
-	pcmFileTmpUuid, err := uuid.NewRandom()
-
-	if err != nil {
-		return nil, err
-	}
-
-	pcmFileTmpName := pcmFileTmpUuid.String() + ".pcm"
-	pcmFilePath := filepath.Join(a.commonSettings.TmpFolder, pcmFileTmpName)
-
-	log.Println("[DEBUG] [SpeechService]: Convert file to PCM")
-	err = utils.OpusToPcm(opusFilePath, pcmFilePath, strconv.Itoa(rate))
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer os.Remove(pcmFilePath)
+	defer resp.Body.Close()
 
 	log.Println("[DEBUG] [SpeechService]: Do request to recognize voice")
 
-	return a.awsSession.Transcribe(pcmFilePath, rate)
+	return a.awsSession.Transcribe(resp.Body)
 }

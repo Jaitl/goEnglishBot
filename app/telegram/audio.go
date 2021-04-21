@@ -1,11 +1,13 @@
 package telegram
 
 import (
+	"log"
+
 	"github.com/jaitl/goEnglishBot/app/aws"
 	"github.com/jaitl/goEnglishBot/app/category"
 	"github.com/jaitl/goEnglishBot/app/phrase"
-	"log"
-	"os"
+
+	tgbotgapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
 type AudioService struct {
@@ -16,9 +18,9 @@ type AudioService struct {
 
 func NewAudioService(bot *Telegram, catModel *category.Model, awsSess *aws.Session) *AudioService {
 	return &AudioService{
-		Bot:         bot,
+		Bot:           bot,
 		CategoryModel: catModel,
-		AwsSession:  awsSess,
+		AwsSession:    awsSess,
 	}
 }
 
@@ -34,17 +36,17 @@ func (a *AudioService) SendAudio(phrs *phrase.Phrase) error {
 		return err
 	}
 
-	pathToAudioFile, err := a.AwsSession.Speech(phrs.EnglishText, fileName)
+	audioBytesArray, err := a.AwsSession.Speech(phrs.EnglishText, fileName)
 
 	if err != nil {
 		return err
 	}
 
-	defer os.Remove(pathToAudioFile)
-
 	log.Println("[DEBUG][AudioService] Upload new audio file")
 
-	audioId, err := a.Bot.SendAudio(phrs.UserId, pathToAudioFile)
+	fileBytes := tgbotgapi.FileBytes{Name: fileName, Bytes: audioBytesArray}
+
+	audioId, err := a.Bot.SendAudio(phrs.UserId, fileBytes)
 
 	if err != nil {
 		return err

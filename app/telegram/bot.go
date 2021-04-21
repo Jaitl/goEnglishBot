@@ -2,10 +2,11 @@ package telegram
 
 import (
 	"fmt"
-	"github.com/go-telegram-bot-api/telegram-bot-api"
+	"log"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/jaitl/goEnglishBot/app/action"
 	"github.com/jaitl/goEnglishBot/app/command"
-	"log"
 )
 
 type Telegram struct {
@@ -127,8 +128,8 @@ func (t *Telegram) SendMarkdown(chatId int, message string) error {
 	return err
 }
 
-func (t *Telegram) SendAudio(chatId int, pathToVoice string) (string, error) {
-	msg := tgbotapi.NewAudioUpload(int64(chatId), pathToVoice)
+func (t *Telegram) SendAudio(chatId int, voiceFile interface{}) (string, error) {
+	msg := tgbotapi.NewAudioUpload(int64(chatId), voiceFile)
 
 	message, err := t.bot.Send(msg)
 
