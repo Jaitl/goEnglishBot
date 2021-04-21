@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -69,7 +67,7 @@ func (s *Session) Translate(text string) (string, error) {
 	return *resp.TranslatedText, nil
 }
 
-func (s *Session) Speech(text, name string) (string, error) {
+func (s *Session) Speech(text string) ([]byte, error) {
 	input := &polly.SynthesizeSpeechInput{
 		Engine:       aws.String(polly.EngineNeural),
 		OutputFormat: aws.String(polly.OutputFormatMp3),
@@ -80,48 +78,31 @@ func (s *Session) Speech(text, name string) (string, error) {
 	output, err := s.polly.SynthesizeSpeech(input)
 
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	defer output.AudioStream.Close()
 
-	mp3FileName := name + ".mp3"
-	mp3FilePath := filepath.Join(s.commonSettings.TmpFolder, mp3FileName)
-
-	mp3OutFile, err := os.Create(mp3FilePath)
+	byteArray, err := io.ReadAll(output.AudioStream)
 
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	defer mp3OutFile.Close()
-
-	_, err = io.Copy(mp3OutFile, output.AudioStream)
-
-	if err != nil {
-		return "", err
-	}
-
-	return mp3FilePath, nil
+	return byteArray, nil
 }
 
-func (s *Session) Transcribe(path string, rate int) (*string, error) {
+func (s *Session) Transcribe(audio io.Reader) (*string, error) {
 	resp, err := s.transcribe.StartStreamTranscription(&transcribe.StartStreamTranscriptionInput{
 		LanguageCode:         aws.String(transcribe.LanguageCodeEnUs),
-		MediaEncoding:        aws.String(transcribe.MediaEncodingPcm),
-		MediaSampleRateHertz: aws.Int64(int64(rate)),
+		MediaEncoding:        aws.String(transcribe.MediaEncodingOggOpus),
+		MediaSampleRateHertz: aws.Int64(48000),
 	})
 	if err != nil {
 		return nil, err
 	}
 	stream := resp.GetStream()
 	defer stream.Close()
-
-	audio, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer audio.Close()
 
 	go func() {
 		err := transcribe.StreamAudioFromReader(context.Background(), stream.Writer, 10*1024, audio)
