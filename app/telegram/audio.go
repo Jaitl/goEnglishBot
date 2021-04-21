@@ -29,14 +29,7 @@ func (a *AudioService) SendAudio(phrs *phrase.Phrase) error {
 		log.Println("[DEBUG][AudioService] Send audio from cache")
 		return a.Bot.SendAudioId(phrs.UserId, phrs.AudioId)
 	}
-
-	fileName, err := phrs.Title()
-
-	if err != nil {
-		return err
-	}
-
-	audioBytesArray, err := a.AwsSession.Speech(phrs.EnglishText, fileName)
+	audioBytesArray, err := a.AwsSession.Speech(phrs.EnglishText)
 
 	if err != nil {
 		return err
@@ -44,6 +37,7 @@ func (a *AudioService) SendAudio(phrs *phrase.Phrase) error {
 
 	log.Println("[DEBUG][AudioService] Upload new audio file")
 
+	fileName := phrs.Title()
 	fileBytes := tgbotgapi.FileBytes{Name: fileName, Bytes: audioBytesArray}
 
 	audioId, err := a.Bot.SendAudio(phrs.UserId, fileBytes)

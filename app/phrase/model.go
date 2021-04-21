@@ -10,16 +10,16 @@ const (
 )
 
 type Phrase struct {
-	UserId      int                `bson:"userId"`
-	IncNumber   int                `bson:"incNumber"`
-	EnglishText string             `bson:"englishText"`
-	RussianText string             `bson:"russianText"`
-	AudioId     string             `bson:"audioId"`
+	UserId      int    `bson:"userId"`
+	IncNumber   int    `bson:"incNumber"`
+	EnglishText string `bson:"englishText"`
+	RussianText string `bson:"russianText"`
+	AudioId     string `bson:"audioId"`
 }
 
-func (p *Phrase) Title() (string, error) {
+func (p *Phrase) Title() string {
 	title := "#" + strconv.Itoa(p.IncNumber)
-	return title, nil
+	return title
 }
 
 func (p *Phrase) ToMarkdown() string {

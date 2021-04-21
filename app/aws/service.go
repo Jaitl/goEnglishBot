@@ -67,7 +67,7 @@ func (s *Session) Translate(text string) (string, error) {
 	return *resp.TranslatedText, nil
 }
 
-func (s *Session) Speech(text, name string) ([]byte, error) {
+func (s *Session) Speech(text string) ([]byte, error) {
 	input := &polly.SynthesizeSpeechInput{
 		Engine:       aws.String(polly.EngineNeural),
 		OutputFormat: aws.String(polly.OutputFormatMp3),
