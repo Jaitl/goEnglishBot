@@ -10,11 +10,9 @@ jobs:
     steps:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v1
-      - name: Extract version from tag
-        run: echo ::set-env name=RELEASE_VERSION::$(echo ${GITHUB_REF:10})
       - name: Login to GitHub Docker Registry
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login docker.pkg.github.com --username ${{ secrets.GITHUB_DOCKER_USERNAME }} --password-stdin
       - name: Docker image build
-        run: docker build -t docker.pkg.github.com/jaitl/goenglishbot/go-english-bot:$RELEASE_VERSION .
+        run: docker build -t docker.pkg.github.com/jaitl/goenglishbot/go-english-bot:${GITHUB_REF:10} .
       - name: Docker push
-        run: docker push docker.pkg.github.com/jaitl/goenglishbot/go-english-bot:$RELEASE_VERSION
+        run: docker push docker.pkg.github.com/jaitl/goenglishbot/go-english-bot:${GITHUB_REF:10}
